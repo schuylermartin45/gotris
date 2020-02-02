@@ -10,12 +10,14 @@
 BIN = bin/
 SRC = src/
 
-# Compiler
-CC = go
+# Go Compiler
+GC = go
+GFLAGS = build
+
 
 # Primary build directive
 build:
-	$(CC) -o $(BIN) $(SRC)*.go
+	$(GC) $(GFLAGS) -o $(BIN)gotris $(SRC)*.go
 
 # Clean directive
 clean:
