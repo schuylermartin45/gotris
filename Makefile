@@ -7,8 +7,8 @@
 ##
 
 # Directories
-BIN = bin/
-SRC = src/
+BIN = ./bin/
+SRC = ./src/
 
 # Go Compiler
 GC = go
@@ -17,7 +17,7 @@ GFLAGS = build
 
 # Primary build directive
 build:
-	$(GC) $(GFLAGS) -o $(BIN)gotris $(SRC)*.go
+	$(GC) $(GFLAGS) -o $(BIN)gotris $(SRC)gotris
 
 # Clean directive
 clean:
