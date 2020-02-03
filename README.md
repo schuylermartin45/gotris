@@ -21,5 +21,5 @@ make
 
 ## Usage
 ```bash
-./gotris [render mode]
+./bin/gotris [render mode]
 ```
