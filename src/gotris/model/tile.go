@@ -9,6 +9,8 @@ package model
 
 import (
 	"math/rand"
+	// Ticking away, the moments that make up the dull day...
+	"time"
 )
 
 /***** Types *****/
@@ -40,12 +42,12 @@ type Tile struct {
 
 /***** Tile Constants *****/
 
-/***** Methods *****/
+/***** Functions *****/
 
 /*
  Picks a tile at random
 */
-func (b Tile) PickTile() Tile {
+func PickTile() Tile {
 	// Tiles follow the Windows 98 Tetris Color scheme.
 	tiles := [7]Tile{
 		// L-left _|
@@ -119,7 +121,28 @@ func (b Tile) PickTile() Tile {
 			color: Green,
 		},
 	}
-	return tiles[rand.Intn(len(tiles))]
+	ranNum := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return tiles[ranNum.Intn(len(tiles))]
+}
+
+/***** Methods *****/
+
+/*
+ Rotates the tile by 90 degrees.
+*/
+func (t *Tile) Rotate() {
+	// Each row (byte in the original) becomes a column in the transpose.
+	temp := Block{}
+	for row := 0; row < len(t.shape); row++ {
+		var mask uint8 = 1
+		for col := 0; col < 8; col++ {
+			mask <<= 1
+			if (col > 1) && (col < 6) {
+				temp[col-2] = t.shape[row] & mask
+			}
+		}
+	}
+	t.shape = temp
 }
 
 /*
@@ -127,6 +150,30 @@ func (b Tile) PickTile() Tile {
 
  @return The tile's color enumeration.
 */
-func (t Tile) GetTileColor() TileColor {
+func (t Tile) GetColor() TileColor {
 	return t.color
+}
+
+/*
+ Dumps a tile to a string for printing.
+ TODO: This should be moved into a view/rendering engine and consolidated with
+ `Board::DumpBoard()`.
+
+ @return Dumps the game board as a simple string of 0s and 1s.
+*/
+func (t Tile) DumpTile() string {
+	view := ""
+	for row := 0; row < len(t.shape); row++ {
+		var mask uint8 = 1
+		for col := 0; col < 8; col++ {
+			if (t.shape[row] & mask) > 0 {
+				view += "11"
+			} else {
+				view += "00"
+			}
+			mask <<= 1
+		}
+		view += "\n"
+	}
+	return view
 }

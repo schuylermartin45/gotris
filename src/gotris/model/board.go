@@ -44,16 +44,16 @@ func (b Board) DumpBoard() string {
 	for row := 0; row < len(b.grid); row++ {
 		var mask uint8 = 1
 		for col := 0; col < 8; col++ {
-			mask <<= 1
 			// The original Tetris used 2 text characters to represent 1 unit of
 			// width. After rendering each bit as 1 text character, this made a lot
 			// of sense, as the the width and height now visually closer to a 1:1
 			// proportion (as opposed to being closer to 1:2).
-			if (b.grid[row] & mask) == 1 {
+			if (b.grid[row] & mask) > 0 {
 				view += "11"
 			} else {
 				view += "00"
 			}
+			mask <<= 1
 		}
 		view += "\n"
 	}
