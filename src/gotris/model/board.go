@@ -59,8 +59,22 @@ func (b *Board) Next() {
 		b.nextTile = PickTile()
 		b.tileDepth = 0
 	}
-	// Advance the tile in the board
-	b.tileDepth++
+
+	// Track conditions for moving to the next tile
+	tileDone := false
+
+	// The tile has hit rock-bottom.
+	if b.tileDepth >= uint8(len(b.grid)) {
+		tileDone = false
+	}
+
+	// Advance
+	if tileDone {
+		b.tile = nil
+	} else {
+		// Advance the tile in the board
+		b.tileDepth++
+	}
 }
 
 /*
