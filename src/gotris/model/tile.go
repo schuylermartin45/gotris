@@ -15,6 +15,15 @@ import (
 
 /***** Types *****/
 
+// XDirection describes movement on the x-axis
+type XDirection bool
+
+// XDirection enumerations
+const (
+	Left  XDirection = true
+	Right XDirection = false
+)
+
 // TileColor represents a color in an enumerated form
 type TileColor uint8
 
@@ -127,6 +136,20 @@ func PickTile() *Tile {
 }
 
 /***** Methods *****/
+
+/*
+ Move the tile one unit in the x-axis (left or right )
+*/
+func (t *Tile) MoveX(direction XDirection) {
+	// TODO: Add bounds-checking
+	for row := 0; row < len(t.shape); row++ {
+		if direction == Left {
+			t.shape[row] <<= 1
+		} else if direction == Right {
+			t.shape[row] >>= 1
+		}
+	}
+}
 
 /*
  Rotates the tile by 90 degrees.

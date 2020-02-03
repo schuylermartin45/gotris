@@ -58,10 +58,16 @@ func (b *Board) Next() {
 		b.tile = b.nextTile
 		b.nextTile = PickTile()
 		b.tileDepth = 0
+		// Skip the rest of this iteration to give the user a break. Also ensures
+		// that the `tileDepth` variable stays "in sync" with the actual row array
+		// index.
+		return
 	}
 
 	// Track conditions for moving to the next tile
 	tileDone := false
+
+	// TODO copy tile into the board.
 
 	// The tile has hit rock-bottom.
 	if b.tileDepth >= uint8(len(b.grid)) {
