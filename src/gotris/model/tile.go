@@ -47,7 +47,7 @@ type Tile struct {
 /*
  Picks a tile at random
 */
-func PickTile() Tile {
+func PickTile() *Tile {
 	// Tiles follow the Windows 98 Tetris Color scheme.
 	tiles := [7]Tile{
 		// L-left _|
@@ -122,7 +122,8 @@ func PickTile() Tile {
 		},
 	}
 	ranNum := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return tiles[ranNum.Intn(len(tiles))]
+	// Note to self: this is legit in Go even if it feels so wrong.
+	return &tiles[ranNum.Intn(len(tiles))]
 }
 
 /***** Methods *****/
