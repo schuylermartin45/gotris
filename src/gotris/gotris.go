@@ -18,6 +18,7 @@ import (
  Main entry point of the Gotris project.
 */
 func main() {
-	fmt.Printf("Hello, world!\n")
-	fmt.Printf("Test %d", model.Test())
+	// A digital frontier...
+	theGrid := model.Board{}
+	fmt.Printf(theGrid.DumpBoard())
 }
