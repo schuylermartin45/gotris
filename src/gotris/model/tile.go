@@ -132,15 +132,21 @@ func PickTile() Tile {
 */
 func (t *Tile) Rotate() {
 	// Each row (byte in the original) becomes a column in the transpose.
+	// This is a little tricky with the binary representation of the shapes
+	// but still feasible. We focus on the inner 4x4 grid (each byte is padded
+	// by two bits on the left and right sides) and calculate 2 masks that
+	// shift in opposite directions.
 	temp := Block{}
+	var transposeMask uint8 = 0b00000100
 	for row := 0; row < len(t.shape); row++ {
-		var mask uint8 = 1
-		for col := 0; col < 8; col++ {
-			mask <<= 1
-			if (col > 1) && (col < 6) {
-				temp[col-2] = t.shape[row] & mask
+		var mask uint8 = 0b00100000
+		for col := 0; col < 4; col++ {
+			if (t.shape[row] & mask) > 0 {
+				temp[col] |= transposeMask
 			}
+			mask >>= 1
 		}
+		transposeMask <<= 1
 	}
 	t.shape = temp
 }

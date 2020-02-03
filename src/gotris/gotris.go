@@ -23,8 +23,9 @@ func main() {
 	//fmt.Printf(theGrid.DumpBoard())
 	// Basic tile rotaton test
 	aTile := model.PickTile()
-	fmt.Printf(aTile.DumpTile())
-	fmt.Println("-------------")
-	aTile.Rotate()
-	fmt.Printf(aTile.DumpTile())
+	for i := 0; i < 5; i++ {
+		fmt.Printf(aTile.DumpTile())
+		fmt.Println("-------------")
+		aTile.Rotate()
+	}
 }
