@@ -174,9 +174,10 @@ func (t *Tile) Rotate() {
 	// shift in opposite directions.
 	temp := Block{}
 	var transposeMask uint8 = 0b00000100
+	halfWidth := int(BoardWidth / 2)
 	for row := 0; row < len(t.shape); row++ {
 		var mask uint8 = 0b00100000
-		for col := 0; col < 4; col++ {
+		for col := 0; col < halfWidth; col++ {
 			if (t.shape[row] & mask) > 0 {
 				temp[col] |= transposeMask
 			}
@@ -203,4 +204,23 @@ func (t Tile) GetColor() TileColor {
 */
 func (t Tile) GetBlock() []uint8 {
 	return t.shape[:]
+}
+
+/*
+ Get the size of the gap from the bottom of the physical tile to the end
+ of the tile's block. In other words, this is the count of zero-rows at the end
+ of the tile.
+
+ @return Number of empty rows under the tile in the tile's block structure.
+*/
+func (t Tile) GetBottomGap() uint8 {
+	var cntr uint8 = 0
+	for row := len(t.shape) - 1; row >= 0; row-- {
+		if t.shape[row] == 0 {
+			cntr++
+		} else {
+			return cntr
+		}
+	}
+	return cntr
 }

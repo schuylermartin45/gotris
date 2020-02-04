@@ -46,8 +46,8 @@ func drawItem(toDraw []uint8) {
 */
 func main() {
 	// A digital frontier...
-	theGrid := model.Board{}
-	for i := 0; i < 30; i++ {
+	theGrid := model.NewBoard()
+	for i := 0; i < 50; i++ {
 		drawItem(theGrid.Next())
 		fmt.Println("-------------")
 	}
