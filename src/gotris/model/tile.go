@@ -141,7 +141,19 @@ func PickTile() *Tile {
  Move the tile one unit in the x-axis (left or right )
 */
 func (t *Tile) MoveX(direction XDirection) {
-	// TODO: Add bounds-checking
+	// Check the bounds. If the left-most or right-most bit is set in any column,
+	// then we can no longer move in that direction.
+	var leftBoundMask uint8 = 0b10000000
+	var rightBoundMask uint8 = 0b00000001
+	for row := 0; row < len(t.shape); row++ {
+		if (direction == Left) && (t.shape[row]&leftBoundMask) > 0 {
+			return
+		} else if (direction == Right) && (t.shape[row]&rightBoundMask) > 0 {
+			return
+		}
+	}
+
+	// If it is safe to shift, shift tile
 	for row := 0; row < len(t.shape); row++ {
 		if direction == Left {
 			t.shape[row] <<= 1
@@ -185,25 +197,10 @@ func (t Tile) GetColor() TileColor {
 }
 
 /*
- Dumps a tile to a string for printing.
- TODO: This should be moved into a view/rendering engine and consolidated with
- `Board::DumpBoard()`.
+ Get a tile's block structure/shape
 
- @return Dumps the game board as a simple string of 0s and 1s.
+ @return The tile's shape.
 */
-func (t Tile) DumpTile() string {
-	view := ""
-	for row := 0; row < len(t.shape); row++ {
-		var mask uint8 = 1
-		for col := 0; col < 8; col++ {
-			if (t.shape[row] & mask) > 0 {
-				view += "11"
-			} else {
-				view += "00"
-			}
-			mask <<= 1
-		}
-		view += "\n"
-	}
-	return view
+func (t Tile) GetBlock() []uint8 {
+	return t.shape[:]
 }

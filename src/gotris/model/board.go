@@ -13,11 +13,15 @@ import (
 
 /***** Types *****/
 
+// BoardGrid will be 8 units wide, 20 tall. The width allows me to do some
+// fancy bitwise operations later because they're fun.
+type BoardGrid [20]uint8
+
 // Board represents the primary state of the game.
 type Board struct {
 	// Board will be 8 units wide, 20 tall. The width allows me to do some
 	// fancy bitwise operations later because they're fun.
-	grid [20]uint8
+	grid BoardGrid
 	// Holds the base score. Display score is this value x100 (to look cooler)
 	score uint16
 	// Reference to the current dropping tile. Nil means a new tile should be
@@ -45,8 +49,10 @@ func (b Board) GetDisplayScore() string {
 /*
  Handle the next iteration of the game. Coupled with the primary game loop,
  this makes the game work.
+
+ @return The current grid to display.
 */
-func (b *Board) Next() {
+func (b *Board) Next() []uint8 {
 	// Initialize the next tile. This should a 1-time cost on first starting the
 	// game. This simplifies the logic for setting the active tile.
 	if b.nextTile == nil {
@@ -61,51 +67,40 @@ func (b *Board) Next() {
 		// Skip the rest of this iteration to give the user a break. Also ensures
 		// that the `tileDepth` variable stays "in sync" with the actual row array
 		// index.
-		return
+		return b.grid[:]
 	}
 
-	// Track conditions for moving to the next tile
+	// Track conditions for moving to the next tile. In other words, a collision
+	// has been detected.
 	tileDone := false
 
-	// TODO copy tile into the board.
+	// Work from the bottom of the tile piece to the top of the tile, adding it
+	// into the working copy of the grid.
+	workingGrid := b.grid
+	boardIdx := b.tileDepth
+	for row := len(b.tile.shape) - 1; row >= 0; row-- {
+		workingGrid[boardIdx] |= b.tile.shape[row]
+		// Break early to stay in bounds
+		if boardIdx == 0 {
+			break
+		}
+		boardIdx--
+	}
+
+	// TODO collision detection.
 
 	// The tile has hit rock-bottom.
-	if b.tileDepth >= uint8(len(b.grid)) {
-		tileDone = false
+	if b.tileDepth == uint8(len(b.grid)-1) {
+		tileDone = true
 	}
 
-	// Advance
+	// Advance to the next tile. Tile becomes persistently part of the board
 	if tileDone {
 		b.tile = nil
-	} else {
+		b.grid = workingGrid
 		// Advance the tile in the board
+	} else {
 		b.tileDepth++
 	}
-}
-
-/*
- Dumps a board to a string for printing.
- TODO: This should be moved into a view/rendering engine.
-
- @return Dumps the game board as a simple string of 0s and 1s.
-*/
-func (b Board) DumpBoard() string {
-	view := ""
-	for row := 0; row < len(b.grid); row++ {
-		var mask uint8 = 1
-		for col := 0; col < 8; col++ {
-			// The original Tetris used 2 text characters to represent 1 unit of
-			// width. After rendering each bit as 1 text character, this made a lot
-			// of sense, as the the width and height now visually closer to a 1:1
-			// proportion (as opposed to being closer to 1:2).
-			if (b.grid[row] & mask) > 0 {
-				view += "11"
-			} else {
-				view += "00"
-			}
-			mask <<= 1
-		}
-		view += "\n"
-	}
-	return view
+	return workingGrid[:]
 }
