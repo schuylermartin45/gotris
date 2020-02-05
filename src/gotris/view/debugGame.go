@@ -68,7 +68,7 @@ func getAction(action string) Action {
 func drawItem(toDraw []uint8) {
 	view := ""
 	for row := 0; row < len(toDraw); row++ {
-		var mask uint8 = 1
+		var mask uint8 = 1 << 7
 		for col := 0; col < int(model.BoardWidth); col++ {
 			// The original Tetris used 2 text characters to represent 1 unit of
 			// width. After rendering each bit as 1 text character, this made a lot
@@ -79,7 +79,7 @@ func drawItem(toDraw []uint8) {
 			} else {
 				view += "00"
 			}
-			mask <<= 1
+			mask >>= 1
 		}
 		view += "\n"
 	}
