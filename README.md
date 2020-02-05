@@ -39,5 +39,7 @@ make
 ./bin/gotris [render mode]
 ```
 Where `[render mode]` is one of these options:
-* `debug`
-* `text`
+### `debug`
+![Early debug mode screenshot](/media/gotris_early_debug_mode.png)
+### `text`
+[Work in progress]
