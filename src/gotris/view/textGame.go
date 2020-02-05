@@ -25,12 +25,12 @@ type TextGame struct {
 /***** Methods *****/
 
 // InitGame initializes the game.
-func (t TextGame) InitGame(b *model.Board) {
+func (t *TextGame) InitGame(b *model.Board) {
 	t.board = b
 }
 
 // RenderGame runs the primary gameplay loop.
-func (t TextGame) RenderGame() {
+func (t *TextGame) RenderGame() {
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 	screen, error := tcell.NewScreen()
 	if error != nil {
@@ -49,5 +49,5 @@ func (t TextGame) RenderGame() {
 }
 
 // ExitGame is a callback triggered when the game terminates
-func (t TextGame) ExitGame(playAgain bool) {
+func (t *TextGame) ExitGame(playAgain bool) {
 }

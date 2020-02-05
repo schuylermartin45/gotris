@@ -64,15 +64,35 @@ func NewBoard() *Board {
  @return The game's current score as a displayable string
 */
 func (b Board) GetDisplayScore() string {
-	return fmt.Sprintf("%5d", b.score) + "00"
+	return fmt.Sprintf("%05d", b.score) + "00"
+}
+
+/*
+ Moves the current tile to the right, if possible.
+*/
+func (b *Board) MoveLeft() {
+	b.tile.MoveX(Left)
+}
+
+/*
+ Moves the current tile to the right, if possible.
+*/
+func (b *Board) MoveRight() {
+	b.tile.MoveX(Right)
+}
+
+/*
+ Rotates the current tile, if possible.
+*/
+func (b *Board) Rotate() {
+	b.tile.Rotate()
 }
 
 /*
  Handle the next iteration of the game. Coupled with the primary game loop,
  this makes the game work.
 
- @return The current grid to display AND true if the game can continue, false
-         if the game is over.
+ @return The current grid to display AND true if the game has ended.
 */
 func (b *Board) Next() ([]uint8, bool) {
 	// Initialize the next tile. This should a 1-time cost on first starting the
@@ -89,7 +109,7 @@ func (b *Board) Next() ([]uint8, bool) {
 		// Skip the rest of this iteration to give the user a break. Also ensures
 		// that the `tileDepth` variable stays "in sync" with the actual row array
 		// index.
-		return b.grid[:BoardHeight], true
+		return b.grid[:BoardHeight], false
 	}
 
 	// Track conditions for moving to the next tile. In other words, a collision
@@ -134,7 +154,7 @@ func (b *Board) Next() ([]uint8, bool) {
 		b.tileDepth++
 	}
 	// TODO implement lose condition.
-	return workingGrid[:BoardHeight], true
+	return workingGrid[:BoardHeight], false
 }
 
 /*

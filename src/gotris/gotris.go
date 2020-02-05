@@ -34,8 +34,8 @@ func main() {
 	// Set a default mode and construct a look-up table
 	mode := DEBUG_MODE
 	modeMap := map[string]view.Display{
-		DEBUG_MODE: view.DebugGame{},
-		TEXT_MODE:  view.TextGame{},
+		DEBUG_MODE: new(view.DebugGame),
+		TEXT_MODE:  new(view.TextGame),
 	}
 
 	// Handle user input
@@ -49,8 +49,7 @@ func main() {
 	}
 
 	// Initialize, run, and exit with the selected mode
-	theGrid := model.NewBoard()
-	modeMap[mode].InitGame(theGrid)
+	modeMap[mode].InitGame(model.NewBoard())
 	modeMap[mode].RenderGame()
 	// TODO implement "play again" option
 	modeMap[mode].ExitGame(false)

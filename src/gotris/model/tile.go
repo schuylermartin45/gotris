@@ -153,9 +153,10 @@ func (t *Tile) MoveX(direction XDirection) {
 
 	// If it is safe to shift, shift tile
 	for row := 0; row < len(t.shape); row++ {
-		if direction == Left {
+		switch direction {
+		case Left:
 			t.shape[row] <<= 1
-		} else if direction == Right {
+		case Right:
 			t.shape[row] >>= 1
 		}
 	}
