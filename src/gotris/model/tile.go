@@ -49,8 +49,6 @@ type Tile struct {
 	color TileColor
 }
 
-/***** Tile Constants *****/
-
 /***** Functions *****/
 
 /*

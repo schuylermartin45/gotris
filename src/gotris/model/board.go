@@ -71,9 +71,10 @@ func (b Board) GetDisplayScore() string {
  Handle the next iteration of the game. Coupled with the primary game loop,
  this makes the game work.
 
- @return The current grid to display.
+ @return The current grid to display AND true if the game can continue, false
+         if the game is over.
 */
-func (b *Board) Next() []uint8 {
+func (b *Board) Next() ([]uint8, bool) {
 	// Initialize the next tile. This should a 1-time cost on first starting the
 	// game. This simplifies the logic for setting the active tile.
 	if b.nextTile == nil {
@@ -88,7 +89,7 @@ func (b *Board) Next() []uint8 {
 		// Skip the rest of this iteration to give the user a break. Also ensures
 		// that the `tileDepth` variable stays "in sync" with the actual row array
 		// index.
-		return b.grid[:BoardHeight]
+		return b.grid[:BoardHeight], true
 	}
 
 	// Track conditions for moving to the next tile. In other words, a collision
@@ -132,7 +133,8 @@ func (b *Board) Next() []uint8 {
 	} else {
 		b.tileDepth++
 	}
-	return workingGrid[:BoardHeight]
+	// TODO implement lose condition.
+	return workingGrid[:BoardHeight], true
 }
 
 /*
