@@ -9,48 +9,51 @@ package main
 
 import (
 	"./model"
+	"./view"
 	"fmt"
+	"os"
 )
 
+/***** Constants *****/
+
+// Various gameplay modes
+const (
+	DEBUG_MODE string = "debug"
+	TEXT_MODE  string = "text"
+)
+
+// USAGE message to display on bad input
+const USAGE string = "Usage: gotris [render mode]"
+
 /***** Functions *****/
-
-/*
- Dumps a tile or board to a string for printing.
- TODO: This should be moved into a view/rendering engine
-
- @return Dumps the game board as a simple string of 0s and 1s.
-*/
-func drawItem(toDraw []uint8) {
-	view := ""
-	for row := 0; row < len(toDraw); row++ {
-		var mask uint8 = 1
-		for col := 0; col < 8; col++ {
-			// The original Tetris used 2 text characters to represent 1 unit of
-			// width. After rendering each bit as 1 text character, this made a lot
-			// of sense, as the the width and height now visually closer to a 1:1
-			// proportion (as opposed to being closer to 1:2).
-			if (toDraw[row] & mask) > 0 {
-				view += "11"
-			} else {
-				view += "00"
-			}
-			mask <<= 1
-		}
-		view += "\n"
-	}
-	fmt.Println(view)
-}
 
 /*
  Main entry point of the Gotris project.
 */
 func main() {
-	// A digital frontier...
-	theGrid := model.NewBoard()
-	for i := 0; i < 50; i++ {
-		drawItem(theGrid.Next())
-		fmt.Println("-------------")
+	// Set a default mode and construct a look-up table
+	mode := DEBUG_MODE
+	modeMap := map[string]view.Display{
+		DEBUG_MODE: view.DebugGame{},
+		TEXT_MODE:  view.TextGame{},
 	}
+
+	// Handle user input
+	if len(os.Args) > 1 {
+		if _, ok := modeMap[os.Args[1]]; ok {
+			mode = os.Args[1]
+		} else {
+			fmt.Fprintf(os.Stderr, "%v\n", USAGE)
+			os.Exit(view.ERROR_USAGE)
+		}
+	}
+
+	// Initialize, run, and exit with the selected mode
+	theGrid := model.NewBoard()
+	modeMap[mode].InitGame(theGrid)
+	modeMap[mode].RenderGame()
+	// TODO implement "play again" option
+	modeMap[mode].ExitGame(false)
 
 	// TODO implement real test cases!
 	/*
