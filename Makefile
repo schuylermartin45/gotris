@@ -19,6 +19,10 @@ GFLAGS = build
 build:
 	$(GC) $(GFLAGS) -o $(BIN)gotris $(SRC)gotris
 
+# Install dependencies
+depend:
+	$(GC) get github.com/gdamore/tcell
+
 # Clean directive
 clean:
 	rm -rf $(BIN)*
