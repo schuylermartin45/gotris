@@ -71,6 +71,9 @@ func (b Board) GetDisplayScore() string {
  Moves the current tile to the right, if possible.
 */
 func (b *Board) MoveLeft() {
+	if b.tile == nil {
+		return
+	}
 	b.tile.MoveX(Left)
 }
 
@@ -78,6 +81,9 @@ func (b *Board) MoveLeft() {
  Moves the current tile to the right, if possible.
 */
 func (b *Board) MoveRight() {
+	if b.tile == nil {
+		return
+	}
 	b.tile.MoveX(Right)
 }
 
@@ -85,6 +91,9 @@ func (b *Board) MoveRight() {
  Rotates the current tile, if possible.
 */
 func (b *Board) Rotate() {
+	if b.tile == nil {
+		return
+	}
 	b.tile.Rotate()
 }
 
