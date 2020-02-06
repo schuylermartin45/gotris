@@ -141,8 +141,8 @@ func PickTile() *Tile {
 func (t *Tile) MoveX(direction XDirection) {
 	// Check the bounds. If the left-most or right-most bit is set in any column,
 	// then we can no longer move in that direction.
-	var leftBoundMask uint8 = 0b10000000
-	var rightBoundMask uint8 = 0b00000001
+	const leftBoundMask uint8 = 0b10000000
+	const rightBoundMask uint8 = 0b00000001
 	for row := 0; row < len(t.shape); row++ {
 		if (direction == Left) && (t.shape[row]&leftBoundMask) > 0 {
 			return

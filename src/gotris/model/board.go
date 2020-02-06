@@ -94,6 +94,22 @@ func (b *Board) Rotate() {
 	if b.tile == nil {
 		return
 	}
+	// If a tile is close to either edge, shift in the opposite direction
+	// and then rotate.
+	const leftBoundMask uint8 = 0b11000000
+	const rightBoundMask uint8 = 0b00000011
+	for row := 0; row < len(b.tile.shape); row++ {
+		if (b.tile.shape[row] & leftBoundMask) > 0 {
+			b.tile.MoveX(Right)
+			b.tile.MoveX(Right)
+			break
+		} else if (b.tile.shape[row] & rightBoundMask) > 0 {
+			b.tile.MoveX(Left)
+			b.tile.MoveX(Left)
+			break
+		}
+	}
+
 	b.tile.Rotate()
 }
 
