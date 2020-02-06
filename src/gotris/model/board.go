@@ -122,6 +122,34 @@ func (b *Board) MoveRight() bool {
 }
 
 /*
+ Moves the tile down one additional unit, if possible.
+
+ @return True if the move happened. False otherwise.
+*/
+func (b *Board) MoveDown() bool {
+	if b.tile == nil {
+		return false
+	}
+	tempDepth := b.tileDepth + 1
+	if checkCollisions(b.grid, *b.tile, tempDepth) {
+		return false
+	}
+	b.tileDepth = tempDepth
+	return true
+}
+
+/*
+ Moves the tile down until a colission occurs
+*/
+func (b *Board) MoveFastDown() {
+	if b.tile == nil {
+		return
+	}
+	for b.MoveDown() {
+	}
+}
+
+/*
  Rotates the current tile, if possible.
 
  @return True if the move happened. False otherwise.

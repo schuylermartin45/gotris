@@ -26,12 +26,13 @@ type Action uint8
 
 // Enumeration of actions
 const (
-	ActionIllegal Action = 0
-	ActionLeft    Action = 1
-	ActionRight   Action = 2
-	ActionDown    Action = 3
-	ActionRotate  Action = 4
-	ActionExit    Action = 5
+	ActionIllegal  Action = 0
+	ActionLeft     Action = 1
+	ActionRight    Action = 2
+	ActionDown     Action = 3
+	ActionFastDown Action = 4
+	ActionRotate   Action = 5
+	ActionExit     Action = 6
 )
 
 // Display is an interface that describes the features of a way to render the

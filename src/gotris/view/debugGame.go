@@ -48,7 +48,7 @@ func getAction(action string) Action {
 		"right":  ActionRight,
 		"s":      ActionDown,
 		"down":   ActionDown,
-		"w":      ActionRotate,
+		"w":      ActionFastDown,
 		"rotate": ActionRotate,
 		" ":      ActionRotate,
 		"e":      ActionExit,
@@ -113,8 +113,10 @@ func (d *DebugGame) RenderGame() {
 			d.board.MoveLeft()
 		case ActionRight:
 			d.board.MoveRight()
-		// TODO implement
-		//case ActionDown:
+		case ActionDown:
+			d.board.MoveDown()
+		case ActionFastDown:
+			d.board.MoveFastDown()
 		case ActionRotate:
 			d.board.Rotate()
 		case ActionExit:
