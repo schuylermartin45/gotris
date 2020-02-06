@@ -56,6 +56,42 @@ func NewBoard() *Board {
 	return b
 }
 
+/***** Internal Functions *****/
+
+/*
+ Check collisions given a future version of the board and tile.
+
+ @param grid		Working copy of the grid.
+ @param tile		Working copy of the tile.
+ @param tileDepth	Working copy of the tile depth.
+
+ @return True if a collision was detected. False otherwise.
+*/
+func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
+	bottomGap := tile.GetBottomGap()
+	// Take the gap at the bottom of the tile into account only if we won't
+	// underflow index.
+	if tileDepth > bottomGap {
+		tileDepth -= bottomGap
+	}
+	// Detect collisions starting at the first occupied row at the bottom of the
+	// tile's structure.
+	bottomTileDiff := int(bottomGap) + 1
+	for row := len(tile.shape) - bottomTileDiff; row >= 0; row-- {
+		// If tile intersects with part of the board, a collision occurred.
+		if (grid[tileDepth] & tile.shape[row]) != 0 {
+			return true
+		}
+		// Break early to stay in bounds when part of the tile is still above the
+		// screen.
+		if tileDepth == 0 {
+			break
+		}
+		tileDepth--
+	}
+	return false
+}
+
 /***** Methods *****/
 
 /*
@@ -68,23 +104,21 @@ func (b Board) GetDisplayScore() string {
 }
 
 /*
- Moves the current tile to the right, if possible.
+ Moves the current tile to the left, if possible.
+
+ @return True if the move was possible. False otherwise.
 */
-func (b *Board) MoveLeft() {
-	if b.tile == nil {
-		return
-	}
-	b.tile.MoveX(Left)
+func (b *Board) MoveLeft() bool {
+	return b.moveX(Left)
 }
 
 /*
  Moves the current tile to the right, if possible.
+
+ @return True if the move was possible. False otherwise.
 */
-func (b *Board) MoveRight() {
-	if b.tile == nil {
-		return
-	}
-	b.tile.MoveX(Right)
+func (b *Board) MoveRight() bool {
+	return b.moveX(Right)
 }
 
 /*
@@ -199,6 +233,26 @@ func (b *Board) Next() ([]uint8, bool) {
 		b.tileDepth++
 	}
 	return workingGrid[:BoardHeight], gameDone
+}
+
+/***** Internal Methods *****/
+
+/*
+ Helper function that moves in either X direction.
+
+ @return True if the move was possible. False otherwise.
+*/
+func (b *Board) moveX(direction XDirection) bool {
+	if b.tile == nil {
+		return false
+	}
+	tempTile := *b.tile
+	tempTile.MoveX(direction)
+	if checkCollisions(b.grid, tempTile, b.tileDepth) {
+		return false
+	}
+	*b.tile = tempTile
+	return true
 }
 
 /*
