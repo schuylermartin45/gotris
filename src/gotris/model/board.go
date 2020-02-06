@@ -21,7 +21,7 @@ const (
 
 /***** Types *****/
 
-// The board is one unit longer than it's displayable form. This makes collision
+// BoardGrid is one unit longer than it's displayable form. This makes collision
 // detection easier.
 type BoardGrid [BoardHeight + 1]uint8
 
@@ -124,6 +124,8 @@ func (b *Board) Next() ([]uint8, bool) {
 	// Track conditions for moving to the next tile. In other words, a collision
 	// has been detected.
 	tileDone := false
+	// Track if the game is done ("We're in the end game now, Stark")
+	gameDone := false
 
 	// Work from the bottom of the tile piece to the top of the tile, adding it
 	// into the working copy of the grid.
@@ -152,18 +154,35 @@ func (b *Board) Next() ([]uint8, bool) {
 	// to the next tile.
 	if b.checkCollisions() {
 		tileDone = true
+		// The game ends when a collision is detected on a tile that has yet
+		// to drop into the board.
+		if b.tileDepth < uint8(len(b.tile.shape)) {
+			gameDone = true
+		}
 	}
 
 	// Advance to the next tile. Tile becomes persistently part of the board
 	if tileDone {
 		b.tile = nil
+		// Search for filled rows, clear them, shift above rows down.
+		// Remember that there is a phantom row at the bottom of the board that is
+		// not rendered.
+		for row := int8(BoardHeight - 1); row >= 0; row-- {
+			if workingGrid[row] == 255 {
+				for i := row; i >= 1; i-- {
+					workingGrid[i] = workingGrid[i-1]
+				}
+				// Top row gets wiped clean
+				workingGrid[0] = 0
+				// Score gets incremented
+				b.score++
+			}
+		}
 		b.grid = workingGrid
-		// Advance the tile in the board
 	} else {
 		b.tileDepth++
 	}
-	// TODO implement lose condition.
-	return workingGrid[:BoardHeight], false
+	return workingGrid[:BoardHeight], gameDone
 }
 
 /*
