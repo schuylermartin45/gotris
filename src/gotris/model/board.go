@@ -202,7 +202,7 @@ func (b *Board) Next() ([]uint8, bool) {
 
 	// If a collision is detected in the next move, then we stop here and move
 	// to the next tile.
-	if b.checkCollisions() {
+	if checkCollisions(b.grid, *b.tile, b.tileDepth+1) {
 		tileDone = true
 		// The game ends when a collision is detected on a tile that has yet
 		// to drop into the board.
@@ -253,37 +253,4 @@ func (b *Board) moveX(direction XDirection) bool {
 	}
 	*b.tile = tempTile
 	return true
-}
-
-/*
- Check collisions on the next move.
-
- @return True if a collision was detected. False otherwise.
-*/
-func (b Board) checkCollisions() bool {
-	workingGrid := b.grid
-	bottomGap := b.tile.GetBottomGap()
-	// Advance one more unit than the game currently is at.
-	var boardIdx uint8 = b.tileDepth + 1
-	// Take the gap at the bottom of the tile into account only if we won't
-	// underflow index.
-	if boardIdx > bottomGap {
-		boardIdx -= bottomGap
-	}
-	// Detect collisions starting at the first occupied row at the bottom of the
-	// tile's structure.
-	bottomTileDiff := int(bottomGap) + 1
-	for row := len(b.tile.shape) - bottomTileDiff; row >= 0; row-- {
-		// If tile intersects with part of the board, a collision occurred.
-		if (workingGrid[boardIdx] & b.tile.shape[row]) != 0 {
-			return true
-		}
-		// Break early to stay in bounds when part of the tile is still above the
-		// screen.
-		if boardIdx == 0 {
-			break
-		}
-		boardIdx--
-	}
-	return false
 }
