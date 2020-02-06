@@ -204,7 +204,7 @@ func (b *Board) Next() ([]uint8, bool) {
 /*
  Check collisions on the next move.
 
- @return A collision type. TODO make enum
+ @return True if a collision was detected. False otherwise.
 */
 func (b Board) checkCollisions() bool {
 	workingGrid := b.grid
