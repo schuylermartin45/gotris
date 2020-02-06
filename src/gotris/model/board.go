@@ -106,7 +106,7 @@ func (b Board) GetDisplayScore() string {
 /*
  Moves the current tile to the left, if possible.
 
- @return True if the move was possible. False otherwise.
+ @return True if the move happened. False otherwise.
 */
 func (b *Board) MoveLeft() bool {
 	return b.moveX(Left)
@@ -115,7 +115,7 @@ func (b *Board) MoveLeft() bool {
 /*
  Moves the current tile to the right, if possible.
 
- @return True if the move was possible. False otherwise.
+ @return True if the move happened. False otherwise.
 */
 func (b *Board) MoveRight() bool {
 	return b.moveX(Right)
@@ -123,28 +123,35 @@ func (b *Board) MoveRight() bool {
 
 /*
  Rotates the current tile, if possible.
+
+ @return True if the move happened. False otherwise.
 */
-func (b *Board) Rotate() {
+func (b *Board) Rotate() bool {
 	if b.tile == nil {
-		return
+		return false
 	}
+	tempTile := *b.tile
 	// If a tile is close to either edge, shift in the opposite direction
 	// and then rotate.
 	const leftBoundMask uint8 = 0b11000000
 	const rightBoundMask uint8 = 0b00000011
-	for row := 0; row < len(b.tile.shape); row++ {
-		if (b.tile.shape[row] & leftBoundMask) > 0 {
-			b.tile.MoveX(Right)
-			b.tile.MoveX(Right)
+	for row := 0; row < len(tempTile.shape); row++ {
+		if (tempTile.shape[row] & leftBoundMask) > 0 {
+			tempTile.MoveX(Right)
+			tempTile.MoveX(Right)
 			break
-		} else if (b.tile.shape[row] & rightBoundMask) > 0 {
-			b.tile.MoveX(Left)
-			b.tile.MoveX(Left)
+		} else if (tempTile.shape[row] & rightBoundMask) > 0 {
+			tempTile.MoveX(Left)
+			tempTile.MoveX(Left)
 			break
 		}
 	}
-
-	b.tile.Rotate()
+	tempTile.Rotate()
+	if checkCollisions(b.grid, tempTile, b.tileDepth) {
+		return false
+	}
+	*b.tile = tempTile
+	return true
 }
 
 /*
@@ -240,7 +247,7 @@ func (b *Board) Next() ([]uint8, bool) {
 /*
  Helper function that moves in either X direction.
 
- @return True if the move was possible. False otherwise.
+ @return True if the move happened. False otherwise.
 */
 func (b *Board) moveX(direction XDirection) bool {
 	if b.tile == nil {
