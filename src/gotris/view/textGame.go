@@ -24,6 +24,23 @@ type TextGame struct {
 
 /***** Methods *****/
 
+// RenderHelpMenu returns a string to display the help menu in the terminal.
+func (t TextGame) RenderHelpMenu() string {
+	return "Text Mode\n" +
+		"\nAbout\n" +
+		"  This mode is an advanced, real-time text-based gameplay mode.\n" +
+		"  It is written using the `tcell` Go package.\n" +
+		// TODO rm this line
+		"  NOTE: this game mode is not complete or playable yet.\n" +
+		"\nControls\n" +
+		"  * W:       Drop tile to floor\n" +
+		"  * A:       Move left\n" +
+		"  * S:       Move right\n" +
+		"  * D:       Move down\n" +
+		"  * [Space]: Rotate\n" +
+		"  * E:       Exit game\n"
+}
+
 // InitGame initializes the game.
 func (t *TextGame) InitGame(b *model.Board) {
 	t.board = b

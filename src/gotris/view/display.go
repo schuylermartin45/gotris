@@ -15,6 +15,7 @@ import (
 
 // Error code constants
 const (
+	EXIT_SUCCESS      = 0
 	ERROR_USAGE       = 1
 	ERROR_SCREEN_INIT = 2
 )
@@ -38,6 +39,8 @@ const (
 // Display is an interface that describes the features of a way to render the
 // game.
 type Display interface {
+	// Returns a string to display the help menu in the terminal.
+	RenderHelpMenu() string
 	// Initializes the game.
 	InitGame(b *model.Board)
 	// Runs the primary gameplay loop.

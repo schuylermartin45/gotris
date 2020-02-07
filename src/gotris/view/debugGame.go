@@ -88,6 +88,21 @@ func drawItem(toDraw []uint8) {
 
 /***** Methods *****/
 
+// RenderHelpMenu returns a string to display the help menu in the terminal.
+func (d DebugGame) RenderHelpMenu() string {
+	return "Debug Mode\n" +
+		"\nAbout\n" +
+		"  This mode is a basic text-mode written for debugging the game.\n" +
+		"  It is written only using standard Go packages.\n" +
+		"\nControls\n" +
+		"  * W:       Drop tile to floor\n" +
+		"  * A:       Move left\n" +
+		"  * S:       Move right\n" +
+		"  * D:       Move down\n" +
+		"  * [Space]: Rotate\n" +
+		"  * E:       Exit game\n"
+}
+
 // InitGame initializes the game.
 func (d *DebugGame) InitGame(b *model.Board) {
 	d.board = b
