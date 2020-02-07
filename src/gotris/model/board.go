@@ -104,6 +104,19 @@ func (b Board) GetDisplayScore() string {
 }
 
 /*
+ Get the next tile (for preview rendering purposes)
+
+ @return A copy of the next tile for rendering
+*/
+func (b Board) GetNextTile() Tile {
+	// If nil, return an empty tile
+	if b.nextTile == nil {
+		return Tile{}
+	}
+	return *b.nextTile
+}
+
+/*
  Moves the current tile to the left, if possible.
 
  @return True if the move happened. False otherwise.

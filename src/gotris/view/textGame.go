@@ -61,11 +61,11 @@ func lookupColor(clr color) tcell.Style {
 	case Red:
 		return style.Foreground(tcell.ColorRed).Background(tcell.ColorDarkRed)
 	case BoardBackground:
-		return style.Foreground(tcell.ColorCornflowerBlue)
+		return style.Background(tcell.ColorBlack)
 	case BoardBorder:
-		return style.Foreground(tcell.ColorDarkGrey)
+		return style.Background(tcell.ColorDarkGrey)
 	case BoardForeground:
-		return style.Foreground(tcell.ColorGrey)
+		return style.Background(tcell.ColorLightSlateGray)
 	}
 	return 0x00
 }
@@ -157,19 +157,29 @@ func (t *TextGame) ExitGame(playAgain bool) {
  Draws the current board to the screen.
 */
 func (t TextGame) drawBoard() {
-	const leftPad = 8
-	const topPad = 2
+	const (
+		// Starting coordinates for the board
+		boardX = 8
+		boardY = 2
+		// Starting coordinates for the next tile preview (relative to the board)
+		previewX = boardY + (2 * 8) + 8
+		previewY = boardY
+	)
 
 	t.screen.Fill(' ', lookupColor(BoardBackground))
+
+	// Draw the board outline
+
+	// Draw the main board
 	workingGrid := t.board.Current()
-	y := topPad
+	y := boardY
 	for row := 0; row < len(workingGrid); row++ {
 		// `y` includes padding from the top of the screen
 		var mask uint8 = 1 << 7
 		for col := 0; col < int(model.BoardWidth); col++ {
 			// Calculate the left and right block x coordinates
-			xL := leftPad + (2 * col)
-			xR := leftPad + (2 * col) + 1
+			xL := boardX + (2 * col)
+			xR := boardX + (2 * col) + 1
 			if (workingGrid[row] & mask) > 0 {
 				t.screen.SetContent(xL, y, '▇', nil, lookupColor(Red))
 				t.screen.SetContent(xR, y, '▇', nil, lookupColor(Red))
@@ -181,6 +191,34 @@ func (t TextGame) drawBoard() {
 		}
 		y++
 	}
+
+	// Draw the score
+
+	// Draw the next tile
+	nextTile := t.board.GetNextTile()
+	nextTileBlock := nextTile.GetBlock()
+	nextTileColor := nextTile.GetColor()
+	y = previewY
+	for row := 0; row < model.TileSize; row++ {
+		// To save on rendering time, skip the first 2 columns, which we know are
+		// padded to be empty on the initial tile's shape/orientation.
+		var mask uint8 = 1 << 5
+		for col := 2; col < model.TileSize+2; col++ {
+			xL := previewX + (2 * col)
+			xR := previewX + (2 * col) + 1
+			if (nextTileBlock[row] & mask) > 0 {
+				t.screen.SetContent(xL, y, '▇', nil, lookupTileColor(nextTileColor))
+				t.screen.SetContent(xR, y, '▇', nil, lookupTileColor(nextTileColor))
+			} else {
+				t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
+				t.screen.SetContent(xR, y, ' ', nil, lookupColor(BoardForeground))
+			}
+			mask >>= 1
+		}
+		y++
+	}
+
+	// Render it all
 	t.screen.Show()
 }
 

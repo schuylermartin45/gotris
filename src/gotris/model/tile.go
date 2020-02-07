@@ -38,8 +38,11 @@ const (
 	Red    TileColor = 6
 )
 
+// TileSize is the max width/height/number of blocks in a tile
+const TileSize = 4
+
 // Block is the primitive structure that describes the shape of each tile.
-type Block [4]uint8
+type Block [TileSize]uint8
 
 // Tile represents a tile in the game.
 type Tile struct {
