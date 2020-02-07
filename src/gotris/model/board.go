@@ -104,6 +104,20 @@ func (b Board) GetDisplayScore() string {
 }
 
 /*
+ Get the current level. The higher the level, the fast the game.
+
+ For added fun (and in the spirit of Pacman) the level counter will be 8 bits
+ longs. So if someone manages to get it that high, they'll start back at level
+ one.
+
+ @return The game's current level.
+*/
+func (b Board) GetLevel() uint8 {
+	// Every ten cleared rows gets new level.
+	return uint8(b.score / 10)
+}
+
+/*
  Get the next tile (for preview rendering purposes)
 
  @return A copy of the next tile for rendering

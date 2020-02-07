@@ -141,10 +141,12 @@ func (t *TextGame) RenderGame() {
 		_, endGame := t.board.Next()
 		t.drawBoard()
 
-		// Draw the game
-		// TODO: sleep time should be a factor of score (every X cleared rows,
-		// speed up game slightly)
-		time.Sleep(500 * time.Millisecond)
+		// Draw the game. Game speed increases with level until a certain point.
+		delay := 500 - int(50*t.board.GetLevel())
+		if delay < 100 {
+			delay = 100
+		}
+		time.Sleep(time.Duration(delay) * time.Millisecond)
 
 		// Stop the loop on the event that the game has ended.
 		if endGame {
