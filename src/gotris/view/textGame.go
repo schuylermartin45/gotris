@@ -99,15 +99,13 @@ func (t TextGame) RenderHelpMenu() string {
 		"\nAbout\n" +
 		"  This mode is an advanced, real-time text-based gameplay mode.\n" +
 		"  It is written using the `tcell` Go package.\n" +
-		// TODO rm this line
-		"  NOTE: this game mode is not complete or playable yet.\n" +
 		"\nControls\n" +
-		"  * W:       Drop tile to floor\n" +
-		"  * A:       Move left\n" +
-		"  * S:       Move right\n" +
-		"  * D:       Move down\n" +
-		"  * [Space]: Rotate\n" +
-		"  * E:       Exit game\n"
+		"  * W/[Up]:         Drop tile to floor\n" +
+		"  * A/[Left]:       Move left\n" +
+		"  * S/[Down]:       Move right\n" +
+		"  * D/[Right]:      Move down\n" +
+		"  * [Space]:        Rotate\n" +
+		"  * [Esc]/[Ctrl-C]: Exit game\n"
 }
 
 // InitGame initializes the game.
