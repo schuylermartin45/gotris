@@ -123,20 +123,9 @@ func (d *DebugGame) RenderGame() {
 		// Handle user input
 		fmt.Print("Next move (w/a/s/d/ /e): ")
 		keypress, _ := d.reader.ReadString('\n')
-		switch action := getAction(keypress); action {
-		case ActionLeft:
-			d.board.MoveLeft()
-		case ActionRight:
-			d.board.MoveRight()
-		case ActionDown:
-			d.board.MoveDown()
-		case ActionFastDown:
-			d.board.MoveFastDown()
-		case ActionRotate:
-			d.board.Rotate()
-		case ActionExit:
+		ActionHandler(d.board, getAction(keypress), func() {
 			endGame = true
-		}
+		})
 
 		// Stop the loop on the event that the game has ended.
 		if endGame {

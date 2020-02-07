@@ -33,7 +33,7 @@ const USAGE string = "Usage: gotris [render mode] [help]"
 */
 func main() {
 	// Set a default mode and construct a look-up table
-	mode := DEBUG_MODE
+	mode := TEXT_MODE
 	modeMap := map[string]view.Display{
 		DEBUG_MODE: new(view.DebugGame),
 		TEXT_MODE:  new(view.TextGame),

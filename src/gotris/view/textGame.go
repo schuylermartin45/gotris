@@ -165,7 +165,6 @@ func (t TextGame) drawBoard() {
 		previewX = boardY + (2 * 8) + 8
 		previewY = boardY
 	)
-
 	t.screen.Fill(' ', lookupColor(BoardBackground))
 
 	// Draw the board outline
