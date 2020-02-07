@@ -36,6 +36,9 @@ const (
 	ActionExit     Action = 6
 )
 
+// ExitFunc is a callback triggered on `ActionExit`. This breaks the game loop
+type ExitFunc func()
+
 // Display is an interface that describes the features of a way to render the
 // game.
 type Display interface {
@@ -47,4 +50,32 @@ type Display interface {
 	RenderGame()
 	// Callback for when the game terminates, with the option to play again.
 	ExitGame(playAgain bool)
+}
+
+/***** Functions *****/
+
+/*
+ Action handler. Given an action, performs a board operation.
+
+ @param board  Pointer to the board to modify.
+ @param action Action to interpret
+ @param onExit	Function to call on exit
+*/
+func ActionHandler(board *model.Board, action Action, onExit ExitFunc) {
+	switch action {
+	case ActionIllegal:
+		return
+	case ActionLeft:
+		board.MoveLeft()
+	case ActionRight:
+		board.MoveRight()
+	case ActionDown:
+		board.MoveDown()
+	case ActionFastDown:
+		board.MoveFastDown()
+	case ActionRotate:
+		board.Rotate()
+	case ActionExit:
+		onExit()
+	}
 }

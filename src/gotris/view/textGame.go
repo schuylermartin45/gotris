@@ -223,29 +223,6 @@ func (t TextGame) drawBoard() {
 }
 
 /*
- Action handler. Given an action, performs a board operation.
-
- @param action	Action to interpret
-*/
-func (t *TextGame) actionHandler(action Action) {
-	switch action {
-	case ActionLeft:
-		t.board.MoveLeft()
-	case ActionRight:
-		t.board.MoveRight()
-	case ActionDown:
-		t.board.MoveDown()
-	case ActionFastDown:
-		t.board.MoveFastDown()
-	case ActionRotate:
-		t.board.Rotate()
-	case ActionExit:
-		t.screen.Fini()
-		os.Exit(EXIT_SUCCESS)
-	}
-}
-
-/*
  Initializes the event listener
 */
 func (t *TextGame) initEventListener() {
@@ -286,7 +263,10 @@ func (t *TextGame) initEventListener() {
 				action = ActionExit
 			}
 			if action != ActionIllegal {
-				t.actionHandler(action)
+				ActionHandler(t.board, action, func() {
+					t.screen.Fini()
+					os.Exit(EXIT_SUCCESS)
+				})
 			}
 		default:
 			continue
