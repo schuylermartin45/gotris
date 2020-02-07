@@ -57,6 +57,8 @@ func (t *TextGame) InitGame(b *model.Board) {
 		fmt.Fprintf(os.Stderr, "%v\n", error)
 		os.Exit(ERROR_SCREEN_INIT)
 	}
+	// Kick off event listener thread.
+	go t.initEventListener()
 }
 
 // RenderGame runs the primary gameplay loop.
@@ -104,4 +106,22 @@ func (t TextGame) drawBoard() {
 		}
 	}
 	t.screen.Show()
+}
+
+/*
+ Initializes the event listener
+*/
+func (t *TextGame) initEventListener() {
+	for {
+		event := t.screen.PollEvent()
+		switch eventType := event.(type) {
+		case *tcell.EventKey:
+			if eventType.Key() == tcell.KeyCtrlC {
+				t.screen.Fini()
+				os.Exit(EXIT_SUCCESS)
+			}
+		default:
+			continue
+		}
+	}
 }
