@@ -136,7 +136,9 @@ func (t *TextGame) RenderGame() {
 		t.drawBoard()
 
 		// Draw the game
-		time.Sleep(100 * time.Millisecond)
+		// TODO: sleep time should be a factor of score (every X cleared rows,
+		// speed up game slightly)
+		time.Sleep(500 * time.Millisecond)
 
 		// Stop the loop on the event that the game has ended.
 		if endGame {
@@ -153,6 +155,9 @@ func (t *TextGame) ExitGame(playAgain bool) {
 
 /*
  Draws the current board to the screen.
+ TODO: Add box drawing routine
+ TODO: Consider/implement static drawing function for background elements
+ TODO: Implement string printing function for score
 */
 func (t TextGame) drawBoard() {
 	const (
@@ -263,7 +268,11 @@ func (t *TextGame) initEventListener() {
 				ActionHandler(t.board, action, func() {
 					t.screen.Fini()
 					os.Exit(EXIT_SUCCESS)
+					return
 				})
+				// Re-render the board on action to make visual feedback more
+				// apparent
+				t.drawBoard()
 			}
 		default:
 			continue
