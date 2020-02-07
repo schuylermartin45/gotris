@@ -19,7 +19,8 @@ import (
 
 // TextGame renders Gotris in an interactive text-based UI.
 type TextGame struct {
-	board *model.Board
+	board  *model.Board
+	screen tcell.Screen
 }
 
 /***** Methods *****/
@@ -44,27 +45,61 @@ func (t TextGame) RenderHelpMenu() string {
 // InitGame initializes the game.
 func (t *TextGame) InitGame(b *model.Board) {
 	t.board = b
-}
 
-// RenderGame runs the primary gameplay loop.
-func (t *TextGame) RenderGame() {
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
-	screen, error := tcell.NewScreen()
+	var error error
+	t.screen, error = tcell.NewScreen()
 	if error != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", error)
 		os.Exit(ERROR_SCREEN_INIT)
 	}
-	if error = screen.Init(); error != nil {
+	if error = t.screen.Init(); error != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", error)
 		os.Exit(ERROR_SCREEN_INIT)
 	}
+}
+
+// RenderGame runs the primary gameplay loop.
+func (t *TextGame) RenderGame() {
 	// A digital frontier...
-	for i := 0; i < 50; i++ {
+	for {
+		// Advance the game
+		_, endGame := t.board.Next()
+		t.drawBoard()
+
+		// Draw the game
 		time.Sleep(100 * time.Millisecond)
-		screen.Clear()
+
+		// Stop the loop on the event that the game has ended.
+		if endGame {
+			break
+		}
 	}
 }
 
 // ExitGame is a callback triggered when the game terminates
 func (t *TextGame) ExitGame(playAgain bool) {
+}
+
+/*
+ Draws the current board to the screen.
+*/
+func (t TextGame) drawBoard() {
+	workingGrid := t.board.Current()
+	for row := 0; row < len(workingGrid); row++ {
+		var mask uint8 = 1 << 7
+		for col := 0; col < int(model.BoardWidth); col++ {
+			if (workingGrid[row] & mask) > 0 {
+				// TODO draw piece
+				t.screen.SetContent(2*col, row, '█', nil, 32)
+				t.screen.SetContent((2*col)+1, row, '█', nil, 32)
+			} else {
+				// TODO draw transparency/background/nothing
+				t.screen.SetContent(2*col, row, 32, nil, 32)
+				t.screen.SetContent((2*col)+1, row, 32, nil, 32)
+			}
+			mask >>= 1
+		}
+	}
+	t.screen.Show()
 }

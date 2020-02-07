@@ -270,6 +270,45 @@ func (b *Board) Next() ([]uint8, bool) {
 	return workingGrid[:BoardHeight], gameDone
 }
 
+/*
+ Get the current state of the board, without moving to the next iteration.
+ TODO: De-dupe this logic w/ `Next()`
+
+ @return The current grid to display.
+*/
+func (b Board) Current() []uint8 {
+	// If no tile is set, then the working grid is all that is needed to be
+	// displayed.
+	if b.tile == nil {
+		return b.grid[:BoardHeight]
+	}
+
+	// Work from the bottom of the tile piece to the top of the tile, adding it
+	// into the working copy of the grid.
+	workingGrid := b.grid
+	boardIdx := b.tileDepth
+	bottomGap := b.tile.GetBottomGap()
+	// Take the gap at the bottom of the tile into account only if we won't
+	// underflow index.
+	if boardIdx > bottomGap {
+		boardIdx -= bottomGap
+	}
+	bottomTileDiff := int(bottomGap) + 1
+	// Only render from the physical bottom of the tile.
+	for row := len(b.tile.shape) - bottomTileDiff; row >= 0; row-- {
+		// Combine the tile into the board.
+		workingGrid[boardIdx] |= b.tile.shape[row]
+		// Break early to stay in bounds when part of the tile is still above the
+		// screen.
+		if boardIdx == 0 {
+			break
+		}
+		boardIdx--
+	}
+
+	return workingGrid[:BoardHeight]
+}
+
 /***** Internal Methods *****/
 
 /*
