@@ -48,9 +48,9 @@ func getAction(action string) Action {
 		"right":  ActionRight,
 		"s":      ActionDown,
 		"down":   ActionDown,
-		"w":      ActionFastDown,
+		"w":      ActionRotate,
 		"rotate": ActionRotate,
-		" ":      ActionRotate,
+		" ":      ActionFastDown,
 		"e":      ActionExit,
 		"exit":   ActionExit,
 	}
@@ -95,11 +95,11 @@ func (d DebugGame) RenderHelpMenu() string {
 		"  This mode is a basic text-mode written for debugging the game.\n" +
 		"  It is written only using standard Go packages.\n" +
 		"\nControls\n" +
-		"  * W:       Drop tile to floor\n" +
+		"  * W:       Rotate\n" +
 		"  * A:       Move left\n" +
 		"  * S:       Move right\n" +
 		"  * D:       Move down\n" +
-		"  * [Space]: Rotate\n" +
+		"  * [Space]: Drop tile to floor\n" +
 		"  * E:       Exit game\n"
 }
 

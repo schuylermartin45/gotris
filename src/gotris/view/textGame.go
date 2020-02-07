@@ -106,11 +106,11 @@ func (t TextGame) RenderHelpMenu() string {
 		"  This mode is an advanced, real-time text-based gameplay mode.\n" +
 		"  It is written using the `tcell` Go package.\n" +
 		"\nControls\n" +
-		"  * W/[Up]:         Drop tile to floor\n" +
+		"  * W/[Up]:         Rotate\n" +
 		"  * A/[Left]:       Move left\n" +
 		"  * S/[Down]:       Move right\n" +
 		"  * D/[Right]:      Move down\n" +
-		"  * [Space]:        Rotate\n" +
+		"  * [Space]:        Drop tile to floor\n" +
 		"  * [Esc]/[Ctrl-C]: Exit game\n"
 }
 
@@ -274,9 +274,9 @@ func (t *TextGame) initEventListener() {
 					action = ActionDown
 				// Fast Down
 				case 'w':
-					action = ActionFastDown
-				case ' ':
 					action = ActionRotate
+				case ' ':
+					action = ActionFastDown
 				}
 			case tcell.KeyLeft:
 				action = ActionLeft
@@ -285,7 +285,7 @@ func (t *TextGame) initEventListener() {
 			case tcell.KeyDown:
 				action = ActionDown
 			case tcell.KeyUp:
-				action = ActionFastDown
+				action = ActionRotate
 			// Exit
 			case tcell.KeyCtrlC:
 				fallthrough
