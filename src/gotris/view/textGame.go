@@ -223,6 +223,29 @@ func (t TextGame) drawBoard() {
 }
 
 /*
+ Action handler. Given an action, performs a board operation.
+
+ @param action	Action to interpret
+*/
+func (t *TextGame) actionHandler(action Action) {
+	switch action {
+	case ActionLeft:
+		t.board.MoveLeft()
+	case ActionRight:
+		t.board.MoveRight()
+	case ActionDown:
+		t.board.MoveDown()
+	case ActionFastDown:
+		t.board.MoveFastDown()
+	case ActionRotate:
+		t.board.Rotate()
+	case ActionExit:
+		t.screen.Fini()
+		os.Exit(EXIT_SUCCESS)
+	}
+}
+
+/*
  Initializes the event listener
 */
 func (t *TextGame) initEventListener() {
@@ -230,9 +253,40 @@ func (t *TextGame) initEventListener() {
 		event := t.screen.PollEvent()
 		switch eventType := event.(type) {
 		case *tcell.EventKey:
-			if eventType.Key() == tcell.KeyCtrlC {
-				t.screen.Fini()
-				os.Exit(EXIT_SUCCESS)
+			var action Action = ActionIllegal
+			switch eventType.Key() {
+			// ASCII keys have to be handled separately
+			case tcell.KeyRune:
+				switch eventType.Rune() {
+				case 'a':
+					action = ActionLeft
+				case 'd':
+					action = ActionRight
+				// Down
+				case 's':
+					action = ActionDown
+				// Fast Down
+				case 'w':
+					action = ActionFastDown
+				case ' ':
+					action = ActionRotate
+				}
+			case tcell.KeyLeft:
+				action = ActionLeft
+			case tcell.KeyRight:
+				action = ActionRight
+			case tcell.KeyDown:
+				action = ActionDown
+			case tcell.KeyUp:
+				action = ActionFastDown
+			// Exit
+			case tcell.KeyCtrlC:
+				fallthrough
+			case tcell.KeyEsc:
+				action = ActionExit
+			}
+			if action != ActionIllegal {
+				t.actionHandler(action)
 			}
 		default:
 			continue
