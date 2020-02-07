@@ -13,6 +13,9 @@ written in Go.
   the game. To start with, there will be a simple text debugging mode and
   then later there will be a fancier text mode and maybe a GUI.
 * Have fun
+  * (And by "have fun" I mean I'm attempting to use reduce memory
+  overhead by using compact data structures...so I can do some fancy bit
+  twiddling).
 
 ## Dependencies
 Go lacks a lot of old-school terminal control abilities (`clear`, `getch()`,
@@ -42,4 +45,5 @@ Where `[render mode]` is one of these options:
 ### `debug`
 ![Early debug mode screenshot](/media/gotris_early_debug_mode.png)
 ### `text`
-[Work in progress]
+![Early text mode screenshot](/media/gotris_early_text_mode.png)
+
