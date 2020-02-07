@@ -229,14 +229,22 @@ func (t *TextGame) drawBoard() {
 	nextTileBlock := nextTile.GetBlock()
 	nextTileColor := nextTile.GetColor()
 	y = previewY
-	for row := 0; row < model.TileSize; row++ {
+	// Pad the top of the preview view
+	for col := 4; col < (2*model.TileSize)+4; col++ {
+		x := previewX + col
+		t.screen.SetContent(x, y, ' ', nil, lookupColor(BoardForeground))
+	}
+	y++
+	// We draw outside of the rendering of the tile to provide lower padding.
+	for row := 0; row < model.TileSize+1; row++ {
 		// To save on rendering time, skip the first 2 columns, which we know are
 		// padded to be empty on the initial tile's shape/orientation.
 		var mask uint8 = 1 << 5
 		for col := 2; col < model.TileSize+2; col++ {
 			xL := previewX + (2 * col)
 			xR := previewX + (2 * col) + 1
-			if (nextTileBlock[row] & mask) > 0 {
+			// The check against row provides lower padding to the preview.
+			if (row < model.TileSize) && ((nextTileBlock[row] & mask) > 0) {
 				t.screen.SetContent(xL, y, '▇', nil, lookupTileColor(nextTileColor))
 				t.screen.SetContent(xR, y, '▇', nil, lookupTileColor(nextTileColor))
 			} else {
