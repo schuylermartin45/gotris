@@ -79,6 +79,8 @@ func (t *TextGame) RenderGame() {
 
 // ExitGame is a callback triggered when the game terminates
 func (t *TextGame) ExitGame(playAgain bool) {
+	// Clean up screen object
+	t.screen.Fini()
 }
 
 /*
