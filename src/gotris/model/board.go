@@ -239,29 +239,8 @@ func (b *Board) Next() ([]uint8, bool) {
 	// Track if the game is done ("We're in the end game now, Stark")
 	gameDone := false
 
-	// Work from the bottom of the tile piece to the top of the tile, adding it
-	// into the working copy of the grid.
-	workingGrid := b.grid
-	boardIdx := b.tileDepth
-	bottomGap := b.tile.GetBottomGap()
-	// Take the gap at the bottom of the tile into account only if we won't
-	// underflow index.
-	if boardIdx > bottomGap {
-		boardIdx -= bottomGap
-	}
-	bottomTileDiff := int(bottomGap) + 1
-	// Only render from the physical bottom of the tile.
-	for row := len(b.tile.shape) - bottomTileDiff; row >= 0; row-- {
-		// Combine the tile into the board.
-		workingGrid[boardIdx] |= b.tile.shape[row]
-		// Break early to stay in bounds when part of the tile is still above the
-		// screen.
-		if boardIdx == 0 {
-			break
-		}
-		boardIdx--
-	}
-
+	// Calculate the current state of the grid.
+	workingGrid := b.calcWorkingGrid()
 	// If a collision is detected in the next move, then we stop here and move
 	// to the next tile.
 	if checkCollisions(b.grid, *b.tile, b.tileDepth+1) {
@@ -290,7 +269,7 @@ func (b *Board) Next() ([]uint8, bool) {
 				b.score++
 			}
 		}
-		b.grid = workingGrid
+		b.grid = *workingGrid
 	} else {
 		b.tileDepth++
 	}
@@ -310,6 +289,37 @@ func (b Board) Current() []uint8 {
 		return b.grid[:BoardHeight]
 	}
 
+	return b.calcWorkingGrid()[:BoardHeight]
+}
+
+/***** Internal Methods *****/
+
+/*
+ Helper function that moves in either X direction.
+
+ @return True if the move happened. False otherwise.
+*/
+func (b *Board) moveX(direction XDirection) bool {
+	if b.tile == nil {
+		return false
+	}
+	tempTile := *b.tile
+	tempTile.MoveX(direction)
+	if checkCollisions(b.grid, tempTile, b.tileDepth) {
+		return false
+	}
+	*b.tile = tempTile
+	return true
+}
+
+/*
+ Calculate the "working grid". This is the board with the current dropping
+ tile merged with the remaining tile pieces. This is also the visible component
+ that is accessible to the views.
+
+ @return Working version of the grid.
+*/
+func (b Board) calcWorkingGrid() *BoardGrid {
 	// Work from the bottom of the tile piece to the top of the tile, adding it
 	// into the working copy of the grid.
 	workingGrid := b.grid
@@ -332,26 +342,5 @@ func (b Board) Current() []uint8 {
 		}
 		boardIdx--
 	}
-
-	return workingGrid[:BoardHeight]
-}
-
-/***** Internal Methods *****/
-
-/*
- Helper function that moves in either X direction.
-
- @return True if the move happened. False otherwise.
-*/
-func (b *Board) moveX(direction XDirection) bool {
-	if b.tile == nil {
-		return false
-	}
-	tempTile := *b.tile
-	tempTile.MoveX(direction)
-	if checkCollisions(b.grid, tempTile, b.tileDepth) {
-		return false
-	}
-	*b.tile = tempTile
-	return true
+	return &workingGrid
 }
