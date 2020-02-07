@@ -38,12 +38,15 @@ const (
 	BoardBackground color = 7
 	BoardBorder     color = 8
 	BoardForeground color = 9
+	TextColor       color = 10
 )
 
 /***** Functions *****/
 
 // lookupColor returns the `tcell` color code for a given color
 func lookupColor(clr color) tcell.Style {
+	bkgrd := tcell.ColorBlack
+	frgrd := tcell.ColorDarkGrey
 	style := tcell.StyleDefault
 	switch clr {
 	case Blue:
@@ -60,14 +63,17 @@ func lookupColor(clr color) tcell.Style {
 		return style.Foreground(tcell.ColorViolet).Background(tcell.ColorDarkViolet)
 	case Red:
 		return style.Foreground(tcell.ColorRed).Background(tcell.ColorDarkRed)
-	case BoardBackground:
-		return style.Background(tcell.ColorBlack)
+	case TextColor:
+		fallthrough
 	case BoardBorder:
-		return style.Background(tcell.ColorDarkGrey)
+		return style.Foreground(frgrd).Background(bkgrd)
 	case BoardForeground:
-		return style.Background(tcell.ColorLightSlateGray)
+		return style.Foreground(frgrd).Background(tcell.ColorLightSlateGray)
+	case BoardBackground:
+		fallthrough
+	default:
+		return style.Background(bkgrd)
 	}
-	return 0x00
 }
 
 // lookupTileColor maps TileColor to the `tcell` color code
@@ -154,23 +160,42 @@ func (t *TextGame) ExitGame(playAgain bool) {
 }
 
 /*
- Draws the current board to the screen.
- TODO: Add box drawing routine
- TODO: Consider/implement static drawing function for background elements
- TODO: Implement string printing function for score
+ Draws a string.
+
+ @param x   Left-top corner x position of the string
+ @param y   Left-top corner y position of the string
+ @param str String to draw
 */
-func (t TextGame) drawBoard() {
+func (t *TextGame) drawStr(x int, y int, str string) {
+	sizeX, sizeY := t.screen.Size()
+	if (x < 0) || (y < 0) || (y > sizeY) {
+		return
+	}
+	for row := 0; row < len(str); row++ {
+		screenX := x + row
+		if screenX > sizeX {
+			break
+		}
+		t.screen.SetContent(screenX, y, rune(str[row]), nil, lookupColor(TextColor))
+	}
+}
+
+/*
+ Draws the current board to the screen.
+*/
+func (t *TextGame) drawBoard() {
 	const (
 		// Starting coordinates for the board
-		boardX = 8
-		boardY = 2
+		boardX = 10
+		boardY = 4
 		// Starting coordinates for the next tile preview (relative to the board)
 		previewX = boardY + (2 * 8) + 8
-		previewY = boardY
+		previewY = boardY + 2
+		// Starting coordinates for the score (relative to the board)
+		scoreX = previewX + 4
+		scoreY = boardY
 	)
 	t.screen.Fill(' ', lookupColor(BoardBackground))
-
-	// Draw the board outline
 
 	// Draw the main board
 	workingGrid := t.board.Current()
@@ -187,7 +212,7 @@ func (t TextGame) drawBoard() {
 				t.screen.SetContent(xR, y, '▇', nil, lookupColor(Red))
 			} else {
 				t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
-				t.screen.SetContent(xR, y, ' ', nil, lookupColor(BoardForeground))
+				t.screen.SetContent(xR, y, '.', nil, lookupColor(BoardForeground))
 			}
 			mask >>= 1
 		}
@@ -195,6 +220,7 @@ func (t TextGame) drawBoard() {
 	}
 
 	// Draw the score
+	t.drawStr(scoreX, scoreY, t.board.GetDisplayScore())
 
 	// Draw the next tile
 	nextTile := t.board.GetNextTile()

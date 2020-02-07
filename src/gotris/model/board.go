@@ -100,7 +100,7 @@ func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
  @return The game's current score as a displayable string
 */
 func (b Board) GetDisplayScore() string {
-	return fmt.Sprintf("%05d", b.score) + "00"
+	return fmt.Sprintf("%06d", b.score) + "00"
 }
 
 /*
