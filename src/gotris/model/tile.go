@@ -29,20 +29,22 @@ type TileColor uint8
 
 // TileColor enumerations
 const (
-	Blue   TileColor = 0
-	Cyan   TileColor = 1
-	Grey   TileColor = 2
-	Yellow TileColor = 3
-	Green  TileColor = 4
-	Violet TileColor = 5
-	Red    TileColor = 6
+	// Also known as the "nil" color
+	Transparent TileColor = 0
+	Blue        TileColor = 1
+	Cyan        TileColor = 2
+	Grey        TileColor = 3
+	Yellow      TileColor = 4
+	Green       TileColor = 5
+	Violet      TileColor = 6
+	Red         TileColor = 7
 )
 
 // TileSize is the max width/height/number of blocks in a tile
 const TileSize = 4
 
 // Block is the primitive structure that describes the shape of each tile.
-type Block [TileSize]uint8
+type Block [TileSize]uint32
 
 // Tile represents a tile in the game.
 type Tile struct {
@@ -136,6 +138,37 @@ func PickTile() *Tile {
 	return &tiles[ranNum.Intn(len(tiles))]
 }
 
+/*
+ Converts from the old 8-bit based grid system to the 32-bit color one (so the
+ tiles can be visibly "drawn" in their binary form.
+
+ @param shape Old shape, 8-bit representation
+ @param color 3-bit color code
+*/
+func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
+	newShape := Block{}
+	for row := 0; row < TileSize; row++ {
+		newShape[row] = maskRow2BitPad
+		if shape[row] != 0 {
+			var mask uint8 = 1 << 7
+			// Shift 31 for leading one, take off 1 bit for 2-bit-pad, take of 3
+			// bits for the left-side block unit we've added so
+			//   31 - 1 - 3 = 27
+			var newMask uint32 = 1 << 27
+			for col := 8; col > 0; col-- {
+				if (shape[row] & mask) > 0 {
+					newShape[row] = uint32(color) << ((col * 3) + 4)
+				}
+			}
+		}
+	}
+	tile := Tile{
+		shape: newShape,
+		color: color,
+	}
+	return &tile
+}
+
 /***** Methods *****/
 
 /*
@@ -204,7 +237,7 @@ func (t Tile) GetColor() TileColor {
 
  @return The tile's shape.
 */
-func (t Tile) GetBlock() []uint8 {
+func (t Tile) GetBlock() []uint32 {
 	return t.shape[:]
 }
 

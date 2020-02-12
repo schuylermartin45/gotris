@@ -13,17 +13,23 @@ import (
 
 /***** Constants *****/
 const (
-	// Board will be 8 units wide, 20 tall. The width allows me to do some
-	// fancy bitwise operations later because they're fun.
-	BoardWidth  uint8 = 8
+	// Board will be 10 units wide, 20 tall. Initially the board was 8 long
+	// to performs some fun bit twiddling but I decided to expand it when I got
+	// tired of the lack of colors.
+	BoardWidth  uint8 = 10
 	BoardHeight uint8 = 20
+
+	/** Internal **/
+
+	maskFullRow    uint32 = 0xFFFFFFFF
+	maskRow2BitPad uint32 = 0x80000001
 )
 
 /***** Types *****/
 
-// BoardGrid is one unit longer than it's displayable form. This makes collision
+// BoardGrid is one unit taller than it's displayable form. This makes collision
 // detection easier.
-type BoardGrid [BoardHeight + 1]uint8
+type BoardGrid [BoardHeight + 1]uint32
 
 // Board represents the primary state of the game.
 type Board struct {
@@ -50,9 +56,14 @@ type Board struct {
 */
 func NewBoard() *Board {
 	b := new(Board)
+	// Since we have 2 bits we can't do anything with, we pad each side
+	// of the board by 1 bit
+	for i := 0; i < int(BoardHeight); i++ {
+		b.grid[i] = maskRow2BitPad
+	}
 	// Last grid row (which is not drawn) is full of 1s for easier
 	// collision detection.
-	b.grid[BoardHeight] = 255
+	b.grid[BoardHeight] = maskFullRow
 	return b
 }
 
@@ -188,8 +199,10 @@ func (b *Board) Rotate() bool {
 	tempTile := *b.tile
 	// If a tile is close to either edge, shift in the opposite direction
 	// and then rotate.
-	const leftBoundMask uint8 = 0b11000000
-	const rightBoundMask uint8 = 0b00000011
+	const (
+		leftBoundMask  uint32 = 0xC0000000
+		rightBoundMask uint32 = 0x00000003
+	)
 	for row := 0; row < len(tempTile.shape); row++ {
 		if (tempTile.shape[row] & leftBoundMask) > 0 {
 			tempTile.MoveX(Right)
@@ -215,7 +228,7 @@ func (b *Board) Rotate() bool {
 
  @return The current grid to display AND true if the game has ended.
 */
-func (b *Board) Next() ([]uint8, bool) {
+func (b *Board) Next() ([]uint32, bool) {
 	// Initialize the next tile. This should a 1-time cost on first starting the
 	// game. This simplifies the logic for setting the active tile.
 	if b.nextTile == nil {
@@ -259,7 +272,7 @@ func (b *Board) Next() ([]uint8, bool) {
 		// Remember that there is a phantom row at the bottom of the board that is
 		// not rendered.
 		for row := int8(BoardHeight - 1); row >= 0; row-- {
-			if workingGrid[row] == 255 {
+			if workingGrid[row] == maskFullRow {
 				for i := row; i >= 1; i-- {
 					workingGrid[i] = workingGrid[i-1]
 				}
@@ -278,11 +291,10 @@ func (b *Board) Next() ([]uint8, bool) {
 
 /*
  Get the current state of the board, without moving to the next iteration.
- TODO: De-dupe this logic w/ `Next()`
 
  @return The current grid to display.
 */
-func (b Board) Current() []uint8 {
+func (b Board) Current() []uint32 {
 	// If no tile is set, then the working grid is all that is needed to be
 	// displayed.
 	if b.tile == nil {
