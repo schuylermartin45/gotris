@@ -186,15 +186,22 @@ func (t *TextGame) drawStr(x int, y int, str string) {
  Draws the current board to the screen.
 */
 func (t *TextGame) drawBoard() {
+	// Ratio and padding constants
 	const (
+		xPad = 4
+		xToY = 2
+		yPad = xPad / xToY
+	)
+	screenW, screenH := t.screen.Size()
+	var (
 		// Starting coordinates for the board
-		boardX = 10
-		boardY = 4
+		boardX = (screenW / 2) - (int(model.BoardWidth) * 2)
+		boardY = (screenH / 2) - (int(model.BoardHeight) / 2)
 		// Starting coordinates for the next tile preview (relative to the board)
-		previewX = boardY + (2 * 8) + 8
-		previewY = boardY + 2
+		previewX = boardX + (xToY * int(model.BoardWidth)) + int(model.BoardWidth)
+		previewY = boardY + yPad
 		// Starting coordinates for the score (relative to the board)
-		scoreX = previewX + 4
+		scoreX = previewX + xPad
 		scoreY = boardY
 	)
 	t.screen.Fill(' ', lookupColor(BoardBackground))
