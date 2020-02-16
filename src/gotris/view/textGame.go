@@ -209,7 +209,6 @@ func (t *TextGame) drawBoard() {
 	t.screen.Fill(' ', lookupColor(BoardBackground))
 
 	// Draw the main board
-	workingGrid := t.board.Current()
 	y := boardY
 	t.board.RenderBoard(func(row uint8, col uint8, isEOL bool, color model.TileColor) {
 		// Calculate the left and right block x coordinates
@@ -232,9 +231,9 @@ func (t *TextGame) drawBoard() {
 	t.drawStr(scoreX, scoreY, t.board.GetDisplayScore())
 
 	// Draw the next tile
-	nextTile := t.board.GetNextTile()
-	nextTileBlock := nextTile.GetBlock()
-	nextTileColor := nextTile.GetColor()
+	//nextTile := t.board.GetNextTile()
+	//nextTileBlock := nextTile.GetBlock()
+	//nextTileColor := nextTile.GetColor()
 	y = previewY
 	// Pad the top of the preview view
 	for col := 4; col < (2*model.TileSize)+4; col++ {
@@ -243,25 +242,28 @@ func (t *TextGame) drawBoard() {
 	}
 	y++
 	// We draw outside of the rendering of the tile to provide lower padding.
-	for row := 0; row < model.TileSize+1; row++ {
-		// To save on rendering time, skip the first 2 columns, which we know are
-		// padded to be empty on the initial tile's shape/orientation.
-		var mask uint8 = 1 << 5
-		for col := 2; col < model.TileSize+2; col++ {
-			xL := previewX + (2 * col)
-			xR := previewX + (2 * col) + 1
-			// The check against row provides lower padding to the preview.
-			if (row < model.TileSize) && ((nextTileBlock[row] & mask) > 0) {
-				t.screen.SetContent(xL, y, '▇', nil, lookupTileColor(nextTileColor))
-				t.screen.SetContent(xR, y, '▇', nil, lookupTileColor(nextTileColor))
-			} else {
-				t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
-				t.screen.SetContent(xR, y, ' ', nil, lookupColor(BoardForeground))
+	// TODO finish/fix
+	/*
+		for row := 0; row < model.TileSize+1; row++ {
+			// To save on rendering time, skip the first 2 columns, which we know are
+			// padded to be empty on the initial tile's shape/orientation.
+			var mask uint8 = 1 << 5
+			for col := 2; col < model.TileSize+2; col++ {
+				xL := previewX + (2 * col)
+				xR := previewX + (2 * col) + 1
+				// The check against row provides lower padding to the preview.
+				if (row < model.TileSize) && ((nextTileBlock[row] & mask) > 0) {
+					t.screen.SetContent(xL, y, '▇', nil, lookupTileColor(nextTileColor))
+					t.screen.SetContent(xR, y, '▇', nil, lookupTileColor(nextTileColor))
+				} else {
+					t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
+					t.screen.SetContent(xR, y, ' ', nil, lookupColor(BoardForeground))
+				}
+				mask >>= 1
 			}
-			mask >>= 1
+			y++
 		}
-		y++
-	}
+	*/
 
 	// Render it all
 	t.screen.Show()

@@ -334,8 +334,13 @@ func (b Board) RenderBoard(draw DrawBlock) {
 			// Select one block at a time, determine the color
 			color := Transparent
 			// Non-zero values require additional shifting
-			if (workingGrid[row] & mask) > 0 {
-				color = Blue
+			singleBlock := uint32(workingGrid[row] & mask)
+			fmt.Printf("0b%032b\n", singleBlock)
+			if singleBlock > 0 {
+				// Shift to the far right, so the bit can be interpretted as a
+				// color
+				fmt.Printf("0b%b\n", singleBlock>>(blockBitSize*uint32((BoardWidth-1)-col)))
+				color = TileColor(singleBlock >> (blockBitSize * uint32((BoardWidth-1)-col)))
 			}
 			isEOL := col >= (BoardWidth - 1)
 			draw(row, col, isEOL, color)
@@ -387,8 +392,8 @@ func (b Board) calcWorkingGrid() *BoardGrid {
 	for row := len(b.tile.shape) - bottomTileDiff; row >= 0; row-- {
 		// Combine the tile into the board.
 		workingGrid[boardIdx] |= b.tile.shape[row]
-		// Break early to stay in bounds when part of the tile is still above the
-		// screen.
+		// Break early to stay in bounds when part of the tile is still above
+		// the screen.
 		if boardIdx == 0 {
 			break
 		}

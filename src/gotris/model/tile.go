@@ -43,6 +43,9 @@ const (
 // TileSize is the max width/height/number of blocks in a tile
 const TileSize = 4
 
+// Simple block is the old format used to generate shapes.
+type SimpleBlock [TileSize]uint8
+
 // Block is the primitive structure that describes the shape of each tile.
 type Block [TileSize]uint32
 
@@ -63,75 +66,54 @@ func PickTile() *Tile {
 	// Tiles follow the Windows 98 Tetris Color scheme.
 	tiles := [7]Tile{
 		// L-left _|
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00001000,
-				0b00001000,
-				0b00011000,
-			},
-			color: Violet,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00001000,
+			0b00001000,
+			0b00011000,
+		}, Violet),
 		// L-right |_
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00010000,
-				0b00010000,
-				0b00011000,
-			},
-			color: Yellow,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00010000,
+			0b00010000,
+			0b00011000,
+		}, Yellow),
 		// Square
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00011000,
-				0b00011000,
-				0b00000000,
-			},
-			color: Cyan,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00011000,
+			0b00011000,
+			0b00000000,
+		}, Cyan),
 		// Pipe
-		Tile{
-			shape: Block{
-				0b00001000,
-				0b00001000,
-				0b00001000,
-				0b00001000,
-			},
-			color: Red,
-		},
+		buildTile(SimpleBlock{
+			0b00001000,
+			0b00001000,
+			0b00001000,
+			0b00001000,
+		}, Red),
 		// Tri-point _-_
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00010000,
-				0b00111000,
-				0b00000000,
-			},
-			color: Grey,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00010000,
+			0b00111000,
+			0b00000000,
+		}, Grey),
 		// S
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00011000,
-				0b00110000,
-				0b00000000,
-			},
-			color: Blue,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00011000,
+			0b00110000,
+			0b00000000,
+		}, Blue),
 		// Z
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00110000,
-				0b00011000,
-				0b00000000,
-			},
-			color: Green,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00110000,
+			0b00011000,
+			0b00000000,
+		}, Green),
 	}
 	ranNum := rand.New(rand.NewSource(time.Now().UnixNano()))
 	// Note to self: this is legit in Go even if it feels so wrong.
@@ -145,19 +127,17 @@ func PickTile() *Tile {
  @param shape Old shape, 8-bit representation
  @param color 3-bit color code
 */
-func buildTile(shape Block, color TileColor) *Tile {
+func buildTile(shape SimpleBlock, color TileColor) Tile {
 	newShape := Block{}
 	for row := 0; row < TileSize; row++ {
-		newShape[row] = maskRow2BitPad
 		if shape[row] != 0 {
-			// Shift 31 for leading one, take off 1 bit for 2-bit-pad, take of 3
-			// bits for the left-side block unit we've added so
-			//   31 - 1 - 3 = 27
-			var mask uint32 = 1 << 27
+			var mask uint8 = 1 << 7
 			for col := 8; col > 0; col-- {
 				if (shape[row] & mask) > 0 {
+					// Project the color in the new board dimensions
 					newShape[row] = uint32(color) << ((col * int(blockBitSize)) + 4)
 				}
+				mask >>= 1
 			}
 		}
 	}
@@ -165,7 +145,7 @@ func buildTile(shape Block, color TileColor) *Tile {
 		shape: newShape,
 		color: color,
 	}
-	return &tile
+	return tile
 }
 
 /***** Methods *****/
