@@ -157,7 +157,7 @@ func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
 			var newMask uint32 = 1 << 27
 			for col := 8; col > 0; col-- {
 				if (shape[row] & mask) > 0 {
-					newShape[row] = uint32(color) << ((col * 3) + 4)
+					newShape[row] = uint32(color) << ((col * int(blockBitSize)) + 4)
 				}
 			}
 		}
@@ -177,8 +177,10 @@ func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
 func (t *Tile) MoveX(direction XDirection) {
 	// Check the bounds. If the left-most or right-most bit is set in any column,
 	// then we can no longer move in that direction.
-	const leftBoundMask uint8 = 0b10000000
-	const rightBoundMask uint8 = 0b00000001
+	const (
+		leftBoundMask  uint32 = 0xF0000000 // 1 leading unused bit + 1 block
+		rightBoundMask uint32 = 0x0000000F // 1 trailing unused bit + 1 block
+	)
 	for row := 0; row < len(t.shape); row++ {
 		if (direction == Left) && (t.shape[row]&leftBoundMask) > 0 {
 			return

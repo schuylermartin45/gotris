@@ -21,8 +21,12 @@ const (
 
 	/** Internal **/
 
-	maskFullRow    uint32 = 0xFFFFFFFF
+	// A full row
+	maskFullRow uint32 = 0xFFFFFFFF
+	// An empty row (with 2 bits unused)
 	maskRow2BitPad uint32 = 0x80000001
+	// Bit-size of one color-block
+	blockBitSize uint32 = 3
 )
 
 /***** Types *****/
@@ -200,8 +204,8 @@ func (b *Board) Rotate() bool {
 	// If a tile is close to either edge, shift in the opposite direction
 	// and then rotate.
 	const (
-		leftBoundMask  uint32 = 0xC0000000
-		rightBoundMask uint32 = 0x00000003
+		leftBoundMask  uint32 = 0x7F000000 // 1 leading unused bit + (2*blockBitSize) = 7 bits
+		rightBoundMask uint32 = 0x0000007F // 1 trailing unused bit + (2*blockBitSize) = 7 bits
 	)
 	for row := 0; row < len(tempTile.shape); row++ {
 		if (tempTile.shape[row] & leftBoundMask) > 0 {
