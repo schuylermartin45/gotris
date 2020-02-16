@@ -121,7 +121,7 @@ func (d *DebugGame) ExitGame(playAgain bool) {
 */
 func (d DebugGame) drawItem() {
 	view := ""
-	d.board.RenderBoard(func(row uint8, col uint8, color model.TileColor) {
+	d.board.RenderBoard(func(row uint8, col uint8, isEOL bool, color model.TileColor) {
 		// The original Tetris used 2 text characters to represent 1 unit of
 		// width. After rendering each bit as 1 text character, this made a lot
 		// of sense, as the the width and height now visually closer to a 1:1
@@ -132,7 +132,7 @@ func (d DebugGame) drawItem() {
 			view += "11"
 		}
 		// Add a newline after the last character in the row
-		if col >= (model.BoardWidth - 1) {
+		if isEOL {
 			view += "\n"
 		}
 	})

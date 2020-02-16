@@ -39,11 +39,12 @@ type BoardGrid [BoardHeight + 1]uint32
  DrawBlock is a callback that renders a single block when called by
  `RenderBoard()`.
 
- @param row   Row position in the board
- @param col   Column position in the board
- @param color Color of the block at position (row, col)
+ @param row   Row position in the board.
+ @param col   Column position in the board.
+ @param isEOL Flag indicates if this is the last column drawn in a row.
+ @param color Color of the block at position (row, col).
 */
-type DrawBlock func(row uint8, col uint8, color TileColor)
+type DrawBlock func(row uint8, col uint8, isEOL bool, color TileColor)
 
 // Board represents the primary state of the game.
 type Board struct {
@@ -336,7 +337,8 @@ func (b Board) RenderBoard(draw DrawBlock) {
 			if (workingGrid[row] & mask) > 0 {
 				color = Blue
 			}
-			draw(row, col, color)
+			isEOL := col >= (BoardWidth - 1)
+			draw(row, col, isEOL, color)
 			mask >>= blockBitSize
 		}
 	}
