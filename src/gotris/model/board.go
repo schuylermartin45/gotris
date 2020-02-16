@@ -35,6 +35,16 @@ const (
 // detection easier.
 type BoardGrid [BoardHeight + 1]uint32
 
+/*
+ DrawBlock is a callback that renders a single block when called by
+ `RenderBoard()`.
+
+ @param row   Row position in the board
+ @param col   Column position in the board
+ @param color Color of the block at position (row, col)
+*/
+type DrawBlock func(row uint8, col uint8, color TileColor)
+
 // Board represents the primary state of the game.
 type Board struct {
 	grid BoardGrid
@@ -204,7 +214,7 @@ func (b *Board) Rotate() bool {
 	// If a tile is close to either edge, shift in the opposite direction
 	// and then rotate.
 	const (
-		leftBoundMask  uint32 = 0x7F000000 // 1 leading unused bit + (2*blockBitSize) = 7 bits
+		leftBoundMask  uint32 = 0xF7000000 // 1 leading unused bit + (2*blockBitSize) = 7 bits
 		rightBoundMask uint32 = 0x0000007F // 1 trailing unused bit + (2*blockBitSize) = 7 bits
 	)
 	for row := 0; row < len(tempTile.shape); row++ {
@@ -306,6 +316,30 @@ func (b Board) Current() []uint32 {
 	}
 
 	return b.calcWorkingGrid()[:BoardHeight]
+}
+
+/*
+ Given a callback, this function iterates over the board and executes the
+ the callback to render a block on the board.
+
+ @param draw Callback to draw a block at a row, column position with a specific
+             color.
+*/
+func (b Board) RenderBoard(draw DrawBlock) {
+	workingGrid := b.Current()
+	for row := uint8(0); row < BoardHeight; row++ {
+		var mask uint32 = 0x70000000
+		for col := uint8(0); col < BoardWidth; col++ {
+			// Select one block at a time, determine the color
+			color := Transparent
+			// Non-zero values require additional shifting
+			if (workingGrid[row] & mask) > 0 {
+				color = Blue
+			}
+			draw(row, col, color)
+			mask >>= blockBitSize
+		}
+	}
 }
 
 /***** Internal Methods *****/
