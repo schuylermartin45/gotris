@@ -145,16 +145,15 @@ func PickTile() *Tile {
  @param shape Old shape, 8-bit representation
  @param color 3-bit color code
 */
-func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
+func buildTile(shape Block, color TileColor) *Tile {
 	newShape := Block{}
 	for row := 0; row < TileSize; row++ {
 		newShape[row] = maskRow2BitPad
 		if shape[row] != 0 {
-			var mask uint8 = 1 << 7
 			// Shift 31 for leading one, take off 1 bit for 2-bit-pad, take of 3
 			// bits for the left-side block unit we've added so
 			//   31 - 1 - 3 = 27
-			var newMask uint32 = 1 << 27
+			var mask uint32 = 1 << 27
 			for col := 8; col > 0; col-- {
 				if (shape[row] & mask) > 0 {
 					newShape[row] = uint32(color) << ((col * int(blockBitSize)) + 4)
@@ -209,20 +208,23 @@ func (t *Tile) Rotate() {
 	// but still feasible. We focus on the inner 4x4 grid (each byte is padded
 	// by two bits on the left and right sides) and calculate 2 masks that
 	// shift in opposite directions.
-	temp := Block{}
-	var transposeMask uint8 = 0b00000100
-	halfWidth := int(BoardWidth / 2)
-	for row := 0; row < len(t.shape); row++ {
-		var mask uint8 = 0b00100000
-		for col := 0; col < halfWidth; col++ {
-			if (t.shape[row] & mask) > 0 {
-				temp[col] |= transposeMask
+	// TODO: fix this, I'm not thinking about this right now.
+	/*
+		temp := Block{}
+		var transposeMask uint8 = 0b00000100
+		halfWidth := int(BoardWidth / 2)
+		for row := 0; row < len(t.shape); row++ {
+			var mask uint8 = 0b00100000
+			for col := 0; col < halfWidth; col++ {
+				if (t.shape[row] & mask) > 0 {
+					temp[col] |= transposeMask
+				}
+				mask >>= 1
 			}
-			mask >>= 1
+			transposeMask <<= 1
 		}
-		transposeMask <<= 1
-	}
-	t.shape = temp
+		t.shape = temp
+	*/
 }
 
 /*
