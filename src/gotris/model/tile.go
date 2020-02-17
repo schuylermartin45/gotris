@@ -134,8 +134,11 @@ func buildTile(shape SimpleBlock, color TileColor) Tile {
 			var mask uint8 = 1 << 7
 			for col := 8; col > 0; col-- {
 				if (shape[row] & mask) > 0 {
-					// Project the color in the new board dimensions
-					newShape[row] = uint32(color) << ((col * int(blockBitSize)) + 4)
+					// Initialize with the color, set on the left-hand side
+					// of the board, minding the spare right-most bit
+					newShape[row] = uint32(color) << 30
+					// Project the color in the new board dimensions.
+					newShape[row] >>= col * int(blockBitSize)
 				}
 				mask >>= 1
 			}
@@ -172,9 +175,9 @@ func (t *Tile) MoveX(direction XDirection) {
 	for row := 0; row < len(t.shape); row++ {
 		switch direction {
 		case Left:
-			t.shape[row] <<= 1
+			t.shape[row] <<= blockBitSize
 		case Right:
-			t.shape[row] >>= 1
+			t.shape[row] >>= blockBitSize
 		}
 	}
 }
