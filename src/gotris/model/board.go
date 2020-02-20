@@ -109,6 +109,11 @@ func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
 	bottomTileDiff := int(bottomGap) + 1
 	for row := len(tile.shape) - bottomTileDiff; row >= 0; row-- {
 		// If tile intersects with part of the board, a collision occurred.
+		//
+		// This check against 0 is valid, as the bits set in `maskRow2BitPad`
+		// are not set in the dropping tile.
+		// TODO: gaps in color codes can result in tiles failing to colide
+		// for example: 0b101 and 0b010 will result in 0b000, which is valid.
 		if (grid[tileDepth] & tile.shape[row]) != 0 {
 			return true
 		}
