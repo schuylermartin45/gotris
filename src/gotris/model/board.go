@@ -108,13 +108,27 @@ func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
 	// tile's structure.
 	bottomTileDiff := int(bottomGap) + 1
 	for row := len(tile.shape) - bottomTileDiff; row >= 0; row-- {
+		// Gaps in color codes can result in tiles failing to colide. For
+		// example, colors 0b101 and 0b010 will result in 0b000, which will
+		// allow tiles to collide. To get around this, `collisionRow` is
+		// calculated, filling in all color codes as 0b111, eliminating the
+		// issue.
+		var mask uint32 = 0b111 << rShiftBlockBitDiff
+		collisionRow := uint32(0)
+		for col := uint8(0); col < BoardWidth; col++ {
+			if (mask & grid[tileDepth]) > 0 {
+				collisionRow |= mask
+			}
+			mask >>= blockBitSize
+		}
+		// Add the bounding bits last, so the boolean check during construction
+		// of the collision row works.
+		collisionRow |= maskRow2BitPad
 		// If tile intersects with part of the board, a collision occurred.
 		//
 		// This check against 0 is valid, as the bits set in `maskRow2BitPad`
 		// are not set in the dropping tile.
-		// TODO: gaps in color codes can result in tiles failing to colide
-		// for example: 0b101 and 0b010 will result in 0b000, which is valid.
-		if (grid[tileDepth] & tile.shape[row]) != 0 {
+		if (collisionRow & tile.shape[row]) != 0 {
 			return true
 		}
 		// Break early to stay in bounds when part of the tile is still above the
