@@ -17,6 +17,10 @@ written in Go.
   overhead by using compact data structures...so I can do some fancy bit
   twiddling).
 
+## Requirements
+Go v1.13 is required as it supports binary literals. See [this](https://github.com/golang/go/issues/19308) 
+issue on GitHub for more info.
+
 ## Dependencies
 Go lacks a lot of old-school terminal control abilities (`clear`, `getch()`,
 etc) so this project uses a 3rd party, cross platform library used by a number
