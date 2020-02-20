@@ -132,14 +132,21 @@ func buildTile(shape SimpleBlock, color TileColor) Tile {
 	for row := 0; row < TileSize; row++ {
 		if shape[row] != 0 {
 			var mask uint8 = 1 << 7
-			for col := 8; col > 0; col-- {
+			for col := uint8(0); col < 8; col++ {
+				tempRow := uint32(0)
 				if (shape[row] & mask) > 0 {
 					// Initialize with the color, set on the left-hand side
-					// of the board, minding the spare right-most bit
-					newShape[row] = uint32(color) << 30
+					// of the board, minding the spare right-most bit.
+					//
+					// << 28 gets leading bit to first position, minus left
+					// 1 bit pad, - blockBitSize to include the new left-most
+					// column that didn't exist in the original 8-column version
+					tempRow = uint32(color) << (rShiftBlockBitDiff - blockBitSize)
 					// Project the color in the new board dimensions.
-					newShape[row] >>= col * int(blockBitSize)
+					tempRow >>= col * uint8(blockBitSize)
 				}
+				// Accumulate blocks we've seen in the horizontal axis.
+				newShape[row] |= tempRow
 				mask >>= 1
 			}
 		}

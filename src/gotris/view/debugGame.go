@@ -126,11 +126,8 @@ func (d DebugGame) drawItem() {
 		// width. After rendering each bit as 1 text character, this made a lot
 		// of sense, as the the width and height now visually closer to a 1:1
 		// proportion (as opposed to being closer to 1:2).
-		if color == model.Transparent {
-			view += "00"
-		} else {
-			view += "11"
-		}
+		view += string(rune('0' + color))
+		view += string(rune('0' + color))
 		// Add a newline after the last character in the row
 		if isEOL {
 			view += "\n"

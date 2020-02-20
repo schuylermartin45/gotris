@@ -27,6 +27,10 @@ const (
 	maskRow2BitPad uint32 = 0x80000001
 	// Bit-size of one color-block
 	blockBitSize uint32 = 3
+	// Amount to shift a color or mask value to the right by to be in
+	// the leading (right-most) position in the board (1 bit left of the right
+	// most pad)
+	rShiftBlockBitDiff uint32 = 28
 )
 
 /***** Types *****/
@@ -329,18 +333,17 @@ func (b Board) Current() []uint32 {
 func (b Board) RenderBoard(draw DrawBlock) {
 	workingGrid := b.Current()
 	for row := uint8(0); row < BoardHeight; row++ {
-		var mask uint32 = 0x70000000
+		var mask uint32 = 0b111 << rShiftBlockBitDiff
 		for col := uint8(0); col < BoardWidth; col++ {
 			// Select one block at a time, determine the color
 			color := Transparent
 			// Non-zero values require additional shifting
 			singleBlock := uint32(workingGrid[row] & mask)
-			fmt.Printf("0b%032b\n", singleBlock)
 			if singleBlock > 0 {
 				// Shift to the far right, so the bit can be interpretted as a
-				// color
-				fmt.Printf("0b%b\n", singleBlock>>(blockBitSize*uint32((BoardWidth-1)-col)))
-				color = TileColor(singleBlock >> (blockBitSize * uint32((BoardWidth-1)-col)))
+				// color. +1 is for the right-most extra bit.
+				shiftBy := (blockBitSize * uint32((BoardWidth-1)-col)) + 1
+				color = TileColor(singleBlock >> shiftBy)
 			}
 			isEOL := col >= (BoardWidth - 1)
 			draw(row, col, isEOL, color)
