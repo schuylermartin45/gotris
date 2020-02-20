@@ -89,11 +89,39 @@ func NewBoard() *Board {
 /***** Internal Functions *****/
 
 /*
+ Helper function that calculates a "collision row", which is a row that
+ represents all blocks as `0b111`, which are completely "filled in".
+
+ Gaps in color codes can result in tiles failing to colide. For example, colors
+ `0b101` and `0b010` will result in `0b000`, which will allow tiles to collide.
+ Filling in all color codes as `0b111`, eliminates the issue.
+
+ @param row Original row full of color data.
+
+ @return The original row, but all color data replaced with "full" blocks,
+         (value: `0b11`)
+*/
+func calcCollisionRow(row uint32) uint32 {
+	var mask uint32 = 0b111 << rShiftBlockBitDiff
+	collisionRow := uint32(0)
+	for col := uint8(0); col < BoardWidth; col++ {
+		if (mask & row) > 0 {
+			collisionRow |= mask
+		}
+		mask >>= blockBitSize
+	}
+	// Add the bounding bits last, so the boolean check during construction
+	// of the collision row works.
+	collisionRow |= maskRow2BitPad
+	return collisionRow
+}
+
+/*
  Check collisions given a future version of the board and tile.
 
- @param grid		Working copy of the grid.
- @param tile		Working copy of the tile.
- @param tileDepth	Working copy of the tile depth.
+ @param grid      Working copy of the grid.
+ @param tile      Working copy of the tile.
+ @param tileDepth Working copy of the tile depth.
 
  @return True if a collision was detected. False otherwise.
 */
@@ -108,22 +136,7 @@ func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
 	// tile's structure.
 	bottomTileDiff := int(bottomGap) + 1
 	for row := len(tile.shape) - bottomTileDiff; row >= 0; row-- {
-		// Gaps in color codes can result in tiles failing to colide. For
-		// example, colors 0b101 and 0b010 will result in 0b000, which will
-		// allow tiles to collide. To get around this, `collisionRow` is
-		// calculated, filling in all color codes as 0b111, eliminating the
-		// issue.
-		var mask uint32 = 0b111 << rShiftBlockBitDiff
-		collisionRow := uint32(0)
-		for col := uint8(0); col < BoardWidth; col++ {
-			if (mask & grid[tileDepth]) > 0 {
-				collisionRow |= mask
-			}
-			mask >>= blockBitSize
-		}
-		// Add the bounding bits last, so the boolean check during construction
-		// of the collision row works.
-		collisionRow |= maskRow2BitPad
+		collisionRow := calcCollisionRow(grid[tileDepth])
 		// If tile intersects with part of the board, a collision occurred.
 		//
 		// This check against 0 is valid, as the bits set in `maskRow2BitPad`
@@ -310,7 +323,7 @@ func (b *Board) Next() ([]uint32, bool) {
 		// Remember that there is a phantom row at the bottom of the board that is
 		// not rendered.
 		for row := int8(BoardHeight - 1); row >= 0; row-- {
-			if workingGrid[row] == maskFullRow {
+			if calcCollisionRow(workingGrid[row]) == maskFullRow {
 				for i := row; i >= 1; i-- {
 					workingGrid[i] = workingGrid[i-1]
 				}
