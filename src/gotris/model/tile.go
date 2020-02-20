@@ -43,7 +43,7 @@ const (
 // TileSize is the max width/height/number of blocks in a tile
 const TileSize = 4
 
-// Simple block is the old format used to generate shapes.
+// SimpleBlock is the old format used to generate shapes.
 type SimpleBlock [TileSize]uint8
 
 // Block is the primitive structure that describes the shape of each tile.
