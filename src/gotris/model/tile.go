@@ -43,6 +43,9 @@ const (
 // TileSize is the max width/height/number of blocks in a tile
 const TileSize = 4
 
+// SimpleBlock is the old format used to generate shapes.
+type SimpleBlock [TileSize]uint8
+
 // Block is the primitive structure that describes the shape of each tile.
 type Block [TileSize]uint32
 
@@ -63,75 +66,54 @@ func PickTile() *Tile {
 	// Tiles follow the Windows 98 Tetris Color scheme.
 	tiles := [7]Tile{
 		// L-left _|
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00001000,
-				0b00001000,
-				0b00011000,
-			},
-			color: Violet,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00001000,
+			0b00001000,
+			0b00011000,
+		}, Violet),
 		// L-right |_
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00010000,
-				0b00010000,
-				0b00011000,
-			},
-			color: Yellow,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00010000,
+			0b00010000,
+			0b00011000,
+		}, Yellow),
 		// Square
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00011000,
-				0b00011000,
-				0b00000000,
-			},
-			color: Cyan,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00011000,
+			0b00011000,
+			0b00000000,
+		}, Cyan),
 		// Pipe
-		Tile{
-			shape: Block{
-				0b00001000,
-				0b00001000,
-				0b00001000,
-				0b00001000,
-			},
-			color: Red,
-		},
+		buildTile(SimpleBlock{
+			0b00001000,
+			0b00001000,
+			0b00001000,
+			0b00001000,
+		}, Red),
 		// Tri-point _-_
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00010000,
-				0b00111000,
-				0b00000000,
-			},
-			color: Grey,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00010000,
+			0b00111000,
+			0b00000000,
+		}, Grey),
 		// S
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00011000,
-				0b00110000,
-				0b00000000,
-			},
-			color: Blue,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00011000,
+			0b00110000,
+			0b00000000,
+		}, Blue),
 		// Z
-		Tile{
-			shape: Block{
-				0b00000000,
-				0b00110000,
-				0b00011000,
-				0b00000000,
-			},
-			color: Green,
-		},
+		buildTile(SimpleBlock{
+			0b00000000,
+			0b00110000,
+			0b00011000,
+			0b00000000,
+		}, Green),
 	}
 	ranNum := rand.New(rand.NewSource(time.Now().UnixNano()))
 	// Note to self: this is legit in Go even if it feels so wrong.
@@ -145,20 +127,27 @@ func PickTile() *Tile {
  @param shape Old shape, 8-bit representation
  @param color 3-bit color code
 */
-func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
+func buildTile(shape SimpleBlock, color TileColor) Tile {
 	newShape := Block{}
 	for row := 0; row < TileSize; row++ {
-		newShape[row] = maskRow2BitPad
 		if shape[row] != 0 {
 			var mask uint8 = 1 << 7
-			// Shift 31 for leading one, take off 1 bit for 2-bit-pad, take of 3
-			// bits for the left-side block unit we've added so
-			//   31 - 1 - 3 = 27
-			var newMask uint32 = 1 << 27
-			for col := 8; col > 0; col-- {
+			for col := uint8(0); col < 8; col++ {
+				tempRow := uint32(0)
 				if (shape[row] & mask) > 0 {
-					newShape[row] = uint32(color) << ((col * 3) + 4)
+					// Initialize with the color, set on the left-hand side
+					// of the board, minding the spare right-most bit.
+					//
+					// << 28 gets leading bit to first position, minus left
+					// 1 bit pad, - blockBitSize to include the new left-most
+					// column that didn't exist in the original 8-column version
+					tempRow = uint32(color) << (rShiftBlockBitDiff - blockBitSize)
+					// Project the color in the new board dimensions.
+					tempRow >>= col * uint8(blockBitSize)
 				}
+				// Accumulate blocks we've seen in the horizontal axis.
+				newShape[row] |= tempRow
+				mask >>= 1
 			}
 		}
 	}
@@ -166,7 +155,7 @@ func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
 		shape: newShape,
 		color: color,
 	}
-	return &tile
+	return tile
 }
 
 /***** Methods *****/
@@ -177,8 +166,10 @@ func buildTile(shape [TileSize]uint8, color TileColor) *Tile {
 func (t *Tile) MoveX(direction XDirection) {
 	// Check the bounds. If the left-most or right-most bit is set in any column,
 	// then we can no longer move in that direction.
-	const leftBoundMask uint8 = 0b10000000
-	const rightBoundMask uint8 = 0b00000001
+	const (
+		leftBoundMask  uint32 = 0xF0000000 // 1 leading unused bit + 1 block
+		rightBoundMask uint32 = 0x0000000F // 1 trailing unused bit + 1 block
+	)
 	for row := 0; row < len(t.shape); row++ {
 		if (direction == Left) && (t.shape[row]&leftBoundMask) > 0 {
 			return
@@ -191,9 +182,9 @@ func (t *Tile) MoveX(direction XDirection) {
 	for row := 0; row < len(t.shape); row++ {
 		switch direction {
 		case Left:
-			t.shape[row] <<= 1
+			t.shape[row] <<= blockBitSize
 		case Right:
-			t.shape[row] >>= 1
+			t.shape[row] >>= blockBitSize
 		}
 	}
 }
@@ -207,20 +198,23 @@ func (t *Tile) Rotate() {
 	// but still feasible. We focus on the inner 4x4 grid (each byte is padded
 	// by two bits on the left and right sides) and calculate 2 masks that
 	// shift in opposite directions.
-	temp := Block{}
-	var transposeMask uint8 = 0b00000100
-	halfWidth := int(BoardWidth / 2)
-	for row := 0; row < len(t.shape); row++ {
-		var mask uint8 = 0b00100000
-		for col := 0; col < halfWidth; col++ {
-			if (t.shape[row] & mask) > 0 {
-				temp[col] |= transposeMask
+	// TODO: fix this, I'm not thinking about this right now.
+	/*
+		temp := Block{}
+		var transposeMask uint8 = 0b00000100
+		halfWidth := int(BoardWidth / 2)
+		for row := 0; row < len(t.shape); row++ {
+			var mask uint8 = 0b00100000
+			for col := 0; col < halfWidth; col++ {
+				if (t.shape[row] & mask) > 0 {
+					temp[col] |= transposeMask
+				}
+				mask >>= 1
 			}
-			mask >>= 1
+			transposeMask <<= 1
 		}
-		transposeMask <<= 1
-	}
-	t.shape = temp
+		t.shape = temp
+	*/
 }
 
 /*
