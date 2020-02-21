@@ -154,6 +154,47 @@ func checkCollisions(grid BoardGrid, tile Tile, tileDepth uint8) bool {
 	return false
 }
 
+/*
+ Helper function that iterates over blocks, calling a render callback at each
+ (row, col) position.
+
+ @param draw	Callback to draw a block at a row, column position with a specific
+             	color.
+ @param blocks	Array of blocks to render.
+ @param height Height of the blocks array.
+ @param width  Width of the blocks array. If this is shorter than `BoardWidth`,
+               the tile will attempt to be vertically centered
+*/
+func renderBlocks(draw DrawBlock, blocks []uint32, height uint8, width uint8) {
+	// Padding calculation for width
+	widthDiff := uint8(0)
+	if BoardWidth > width {
+		widthDiff = BoardWidth - width
+	} else if BoardWidth < width {
+		widthDiff = 0
+	}
+	halfWidthDiff := widthDiff / 2
+	for row := uint8(0); row < height; row++ {
+		var mask uint32 = 0b111 << (rShiftBlockBitDiff - (blockBitSize * uint32(widthDiff/2)))
+		paddedWidth := width + halfWidthDiff
+		for col := uint8(halfWidthDiff); col < paddedWidth; col++ {
+			// Select one block at a time, determine the color
+			color := Transparent
+			// Non-zero values require additional shifting
+			singleBlock := uint32(blocks[row] & mask)
+			if singleBlock > 0 {
+				// Shift to the far right, so the bit can be interpretted as a
+				// color. +1 is for the right-most extra bit.
+				shiftBy := (blockBitSize * uint32((BoardWidth-1)-col)) + 1
+				color = TileColor(singleBlock >> shiftBy)
+			}
+			isEOL := col >= (paddedWidth - 1)
+			draw(row, col, isEOL, color)
+			mask >>= blockBitSize
+		}
+	}
+}
+
 /***** Methods *****/
 
 /*
@@ -363,25 +404,19 @@ func (b Board) Current() []uint32 {
              color.
 */
 func (b Board) RenderBoard(draw DrawBlock) {
-	workingGrid := b.Current()
-	for row := uint8(0); row < BoardHeight; row++ {
-		var mask uint32 = 0b111 << rShiftBlockBitDiff
-		for col := uint8(0); col < BoardWidth; col++ {
-			// Select one block at a time, determine the color
-			color := Transparent
-			// Non-zero values require additional shifting
-			singleBlock := uint32(workingGrid[row] & mask)
-			if singleBlock > 0 {
-				// Shift to the far right, so the bit can be interpretted as a
-				// color. +1 is for the right-most extra bit.
-				shiftBy := (blockBitSize * uint32((BoardWidth-1)-col)) + 1
-				color = TileColor(singleBlock >> shiftBy)
-			}
-			isEOL := col >= (BoardWidth - 1)
-			draw(row, col, isEOL, color)
-			mask >>= blockBitSize
-		}
-	}
+	renderBlocks(draw, b.Current(), BoardHeight, BoardWidth)
+}
+
+/*
+ Given a callback, this function iterates over the next tile and executes the
+ the callback to render a block.
+
+ @param draw Callback to draw a block at a row, column position with a specific
+             color.
+*/
+func (b Board) RenderNextTile(draw DrawBlock) {
+	blocks := b.GetNextTile().shape
+	renderBlocks(draw, blocks[:], TileSize, BoardWidth-2)
 }
 
 /***** Internal Methods *****/
