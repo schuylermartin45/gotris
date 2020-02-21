@@ -194,27 +194,23 @@ func (t *Tile) MoveX(direction XDirection) {
 */
 func (t *Tile) Rotate() {
 	// Each row (byte in the original) becomes a column in the transpose.
-	// This is a little tricky with the binary representation of the shapes
-	// but still feasible. We focus on the inner 4x4 grid (each byte is padded
-	// by two bits on the left and right sides) and calculate 2 masks that
-	// shift in opposite directions.
-	// TODO: fix this, I'm not thinking about this right now.
-	/*
-		temp := Block{}
-		var transposeMask uint8 = 0b00000100
-		halfWidth := int(BoardWidth / 2)
-		for row := 0; row < len(t.shape); row++ {
-			var mask uint8 = 0b00100000
-			for col := 0; col < halfWidth; col++ {
-				if (t.shape[row] & mask) > 0 {
-					temp[col] |= transposeMask
-				}
-				mask >>= 1
+	transpose := Block{}
+	widthDiff := BoardWidth - TileSize
+	halfWidthDiff := widthDiff / 2
+	maxCol := TileSize + halfWidthDiff
+	transposeMask := uint32(blockMask << ((blockBitSize * uint32(halfWidthDiff)) + 1))
+	for row := uint8(0); row < TileSize; row++ {
+		var mask uint32 = blockMask << rShiftBlockBitDiff
+		for col := uint8(halfWidthDiff); col < maxCol; col++ {
+			singleBlock := uint32(t.shape[row] & mask)
+			if singleBlock > 0 {
+				transpose[col] |= transposeMask
 			}
-			transposeMask <<= 1
+			mask >>= blockBitSize
 		}
-		t.shape = temp
-	*/
+		transposeMask <<= blockMask
+	}
+	t.shape = transpose
 }
 
 /*

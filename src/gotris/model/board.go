@@ -31,6 +31,9 @@ const (
 	// the leading (right-most) position in the board (1 bit left of the right
 	// most pad)
 	rShiftBlockBitDiff uint32 = 28
+	// Mask used to detect blocks (will require left shifting to maintain
+	// bit interpretation order)
+	blockMask = 0b111
 )
 
 /***** Types *****/
@@ -102,7 +105,7 @@ func NewBoard() *Board {
          (value: `0b11`)
 */
 func calcCollisionRow(row uint32) uint32 {
-	var mask uint32 = 0b111 << rShiftBlockBitDiff
+	var mask uint32 = blockMask << rShiftBlockBitDiff
 	collisionRow := uint32(0)
 	for col := uint8(0); col < BoardWidth; col++ {
 		if (mask & row) > 0 {
@@ -175,7 +178,7 @@ func renderBlocks(draw DrawBlock, blocks []uint32, height uint8, width uint8) {
 	}
 	halfWidthDiff := widthDiff / 2
 	for row := uint8(0); row < height; row++ {
-		var mask uint32 = 0b111 << (rShiftBlockBitDiff - (blockBitSize * uint32(widthDiff/2)))
+		var mask uint32 = blockMask << (rShiftBlockBitDiff - (blockBitSize * uint32(widthDiff/2)))
 		paddedWidth := width + halfWidthDiff
 		for col := uint8(halfWidthDiff); col < paddedWidth; col++ {
 			// Select one block at a time, determine the color
