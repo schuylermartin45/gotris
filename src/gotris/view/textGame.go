@@ -60,7 +60,7 @@ func lookupColor(clr color) tcell.Style {
 	case Green:
 		return style.Foreground(tcell.ColorGreen).Background(tcell.ColorDarkGreen)
 	case Violet:
-		return style.Foreground(tcell.ColorViolet).Background(tcell.ColorDarkViolet)
+		return style.Foreground(tcell.ColorDarkViolet).Background(tcell.ColorMediumVioletRed)
 	case Red:
 		return style.Foreground(tcell.ColorRed).Background(tcell.ColorDarkRed)
 	case TextColor:
