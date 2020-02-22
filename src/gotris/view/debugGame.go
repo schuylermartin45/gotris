@@ -84,7 +84,7 @@ func (d *DebugGame) InitGame(b *model.Board) {
 }
 
 // RenderGame runs the primary gameplay loop.
-func (d *DebugGame) RenderGame() {
+func (d *DebugGame) RenderGame() bool {
 	for {
 		// Advance the game
 		_, endGame := d.board.Next()
@@ -106,10 +106,15 @@ func (d *DebugGame) RenderGame() {
 			break
 		}
 	}
+	fmt.Print("Play again? (y/n): ")
+	playAgain, _ := d.reader.ReadString('\n')
+	playAgain = strings.ToLower(strings.TrimSuffix(playAgain, "\n"))
+	return (playAgain == "y") || (playAgain == "yes")
 }
 
 // ExitGame is a callback triggered when the game terminates
-func (d *DebugGame) ExitGame(playAgain bool) {
+func (d *DebugGame) ExitGame() {
+	// Intentionally left blank
 }
 
 /** Internal **/

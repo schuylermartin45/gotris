@@ -120,23 +120,26 @@ func (t TextGame) RenderHelpMenu() string {
 func (t *TextGame) InitGame(b *model.Board) {
 	t.board = b
 
-	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
-	var error error
-	t.screen, error = tcell.NewScreen()
-	if error != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", error)
-		os.Exit(ERROR_SCREEN_INIT)
+	// Init the screen on first game. Subsequent games do not re-initialized.
+	if t.screen == nil {
+		tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
+		var error error
+		t.screen, error = tcell.NewScreen()
+		if error != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", error)
+			os.Exit(ERROR_SCREEN_INIT)
+		}
+		if error = t.screen.Init(); error != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", error)
+			os.Exit(ERROR_SCREEN_INIT)
+		}
+		// Kick off event listener thread.
+		go t.initEventListener()
 	}
-	if error = t.screen.Init(); error != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", error)
-		os.Exit(ERROR_SCREEN_INIT)
-	}
-	// Kick off event listener thread.
-	go t.initEventListener()
 }
 
 // RenderGame runs the primary gameplay loop.
-func (t *TextGame) RenderGame() {
+func (t *TextGame) RenderGame() bool {
 	// Primary game loop loops until the game completes
 	for {
 		// Advance the game
@@ -155,10 +158,22 @@ func (t *TextGame) RenderGame() {
 			break
 		}
 	}
+
+	// Count-down to play again
+	replayX, replayY := t.screen.Size()
+	replayY /= 2
+	for i := 10; i > 0; i-- {
+		displayStr := fmt.Sprintf("Playing again?...%02d (Esc to exit)", i)
+		newReplayX := (replayX / 2) - (len(displayStr) / 2)
+		t.drawStr(newReplayX, replayY, displayStr)
+		t.screen.Show()
+		time.Sleep(time.Duration(1) * time.Second)
+	}
+	return true
 }
 
 // ExitGame is a callback triggered when the game terminates
-func (t *TextGame) ExitGame(playAgain bool) {
+func (t *TextGame) ExitGame() {
 	// Clean up screen object
 	t.screen.Fini()
 }
