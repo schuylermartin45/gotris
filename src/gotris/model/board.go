@@ -366,17 +366,24 @@ func (b *Board) Next() ([]uint32, bool) {
 		// Search for filled rows, clear them, shift above rows down.
 		// Remember that there is a phantom row at the bottom of the board that is
 		// not rendered.
+		numCleared := uint16(0)
 		for row := int8(BoardHeight - 1); row >= 0; row-- {
 			if calcCollisionRow(workingGrid[row]) == maskFullRow {
 				for i := row; i >= 1; i-- {
 					workingGrid[i] = workingGrid[i-1]
 				}
-				// Top row gets wiped clean
-				workingGrid[0] = 0
-				// Score gets incremented
-				b.score++
+				// Top row gets wiped clean.
+				workingGrid[0] = maskRow2BitPad
+				// Count the cleared rows.
+				numCleared++
+				// Reset row calculation to run against the same row again.
+				// In the event that multiple rows are cleared at once, this
+				// prevents us from leaving a full row beind.
+				row++
 			}
 		}
+		// Get a score multiplier if multiple rows are cleared at once.
+		b.score += numCleared * numCleared
 		b.grid = *workingGrid
 	} else {
 		b.tileDepth++
