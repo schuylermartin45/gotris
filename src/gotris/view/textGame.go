@@ -218,7 +218,7 @@ func (t *TextGame) drawBoard() {
 		previewX = boardX + (xToY * int(model.BoardWidth)) + int(model.BoardWidth)
 		previewY = boardY + yPad
 		// Starting coordinates for the score (relative to the board)
-		scoreX = previewX + (2.5 * xPad)
+		scoreX = previewX + (xPad / 2)
 		scoreY = boardY
 	)
 	t.screen.Fill(' ', lookupColor(BoardBackground))
@@ -243,7 +243,7 @@ func (t *TextGame) drawBoard() {
 	})
 
 	// Draw the score
-	t.drawStr(scoreX, scoreY, t.board.GetDisplayScore())
+	t.drawStr(scoreX, scoreY, "Score:  "+t.board.GetDisplayScore())
 
 	// Draw the next tile
 	y = previewY
