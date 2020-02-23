@@ -1,4 +1,4 @@
-# Gotris (v0.5)
+# Gotris (v1.0)
 
 ## An implementation of Tetris in Go following MVC design principles
 
@@ -46,8 +46,8 @@ make
 ./bin/gotris [render mode]
 ```
 Where `[render mode]` is one of these options:
+### `text` (Default Mode)
+![v1.0 Text Mode Screenshot](/media/gotris_v1-0_text_mode.png)
 ### `debug`
-![Early debug mode screenshot](/media/gotris_early_debug_mode.png)
-### `text`
-![Early text mode screenshot](/media/gotris_early_text_mode.png)
+![v1.0 Debug Mode Screenshot](/media/gotris_v1-0_debug_mode.png)
 
