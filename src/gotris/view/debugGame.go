@@ -60,32 +60,6 @@ func getAction(action string) Action {
 	return ActionIllegal
 }
 
-/*
- Dumps a tile or board to a string for printing.
-
- @return Dumps the game board as a simple string of 0s and 1s.
-*/
-func drawItem(toDraw []uint8) {
-	view := ""
-	for row := 0; row < len(toDraw); row++ {
-		var mask uint8 = 1 << 7
-		for col := 0; col < int(model.BoardWidth); col++ {
-			// The original Tetris used 2 text characters to represent 1 unit of
-			// width. After rendering each bit as 1 text character, this made a lot
-			// of sense, as the the width and height now visually closer to a 1:1
-			// proportion (as opposed to being closer to 1:2).
-			if (toDraw[row] & mask) > 0 {
-				view += "11"
-			} else {
-				view += "00"
-			}
-			mask >>= 1
-		}
-		view += "\n"
-	}
-	fmt.Print(view)
-}
-
 /***** Methods *****/
 
 // RenderHelpMenu returns a string to display the help menu in the terminal.
@@ -110,15 +84,15 @@ func (d *DebugGame) InitGame(b *model.Board) {
 }
 
 // RenderGame runs the primary gameplay loop.
-func (d *DebugGame) RenderGame() {
+func (d *DebugGame) RenderGame() bool {
 	for {
 		// Advance the game
-		grid, endGame := d.board.Next()
+		_, endGame := d.board.Next()
 
 		// Draw the board
 		fmt.Printf("Score:  %8v\n", d.board.GetDisplayScore())
 		fmt.Println("----------------")
-		drawItem(grid)
+		d.drawItem()
 
 		// Handle user input
 		fmt.Print("Next move (w/a/s/d/ /e): ")
@@ -132,8 +106,37 @@ func (d *DebugGame) RenderGame() {
 			break
 		}
 	}
+	fmt.Print("Play again? (y/n): ")
+	playAgain, _ := d.reader.ReadString('\n')
+	playAgain = strings.ToLower(strings.TrimSuffix(playAgain, "\n"))
+	return (playAgain == "y") || (playAgain == "yes")
 }
 
 // ExitGame is a callback triggered when the game terminates
-func (d *DebugGame) ExitGame(playAgain bool) {
+func (d *DebugGame) ExitGame() {
+	// Intentionally left blank
+}
+
+/** Internal **/
+
+/*
+ Dumps a tile or board to a string for printing.
+
+ @return Dumps the game board as a simple string of 0s and 1s.
+*/
+func (d DebugGame) drawItem() {
+	view := ""
+	d.board.RenderBoard(func(row uint8, col uint8, isEOL bool, color model.TileColor) {
+		// The original Tetris used 2 text characters to represent 1 unit of
+		// width. After rendering each bit as 1 text character, this made a lot
+		// of sense, as the the width and height now visually closer to a 1:1
+		// proportion (as opposed to being closer to 1:2).
+		view += string(rune('0' + color))
+		view += string(rune('0' + color))
+		// Add a newline after the last character in the row
+		if isEOL {
+			view += "\n"
+		}
+	})
+	fmt.Print(view)
 }

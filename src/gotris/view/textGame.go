@@ -54,13 +54,13 @@ func lookupColor(clr color) tcell.Style {
 	case Cyan:
 		return style.Foreground(tcell.ColorLightBlue).Background(tcell.ColorRoyalBlue)
 	case Grey:
-		return style.Foreground(tcell.ColorGrey).Background(tcell.ColorDarkGrey)
+		return style.Foreground(tcell.ColorDimGrey).Background(tcell.ColorGrey)
 	case Yellow:
 		return style.Foreground(tcell.ColorYellow).Background(tcell.ColorSandyBrown)
 	case Green:
 		return style.Foreground(tcell.ColorGreen).Background(tcell.ColorDarkGreen)
 	case Violet:
-		return style.Foreground(tcell.ColorViolet).Background(tcell.ColorDarkViolet)
+		return style.Foreground(tcell.ColorDarkViolet).Background(tcell.ColorMediumVioletRed)
 	case Red:
 		return style.Foreground(tcell.ColorRed).Background(tcell.ColorDarkRed)
 	case TextColor:
@@ -79,6 +79,8 @@ func lookupColor(clr color) tcell.Style {
 // lookupTileColor maps TileColor to the `tcell` color code
 func lookupTileColor(clr model.TileColor) tcell.Style {
 	switch clr {
+	case model.Transparent:
+		return lookupColor(BoardForeground)
 	case model.Blue:
 		return lookupColor(Blue)
 	case model.Cyan:
@@ -118,23 +120,26 @@ func (t TextGame) RenderHelpMenu() string {
 func (t *TextGame) InitGame(b *model.Board) {
 	t.board = b
 
-	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
-	var error error
-	t.screen, error = tcell.NewScreen()
-	if error != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", error)
-		os.Exit(ERROR_SCREEN_INIT)
+	// Init the screen on first game. Subsequent games do not re-initialized.
+	if t.screen == nil {
+		tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
+		var error error
+		t.screen, error = tcell.NewScreen()
+		if error != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", error)
+			os.Exit(ERROR_SCREEN_INIT)
+		}
+		if error = t.screen.Init(); error != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", error)
+			os.Exit(ERROR_SCREEN_INIT)
+		}
+		// Kick off event listener thread.
+		go t.initEventListener()
 	}
-	if error = t.screen.Init(); error != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", error)
-		os.Exit(ERROR_SCREEN_INIT)
-	}
-	// Kick off event listener thread.
-	go t.initEventListener()
 }
 
 // RenderGame runs the primary gameplay loop.
-func (t *TextGame) RenderGame() {
+func (t *TextGame) RenderGame() bool {
 	// Primary game loop loops until the game completes
 	for {
 		// Advance the game
@@ -153,10 +158,22 @@ func (t *TextGame) RenderGame() {
 			break
 		}
 	}
+
+	// Count-down to play again
+	replayX, replayY := t.screen.Size()
+	replayY /= 2
+	for i := 10; i > 0; i-- {
+		displayStr := fmt.Sprintf("Playing again?...%02d (Esc to exit)", i)
+		newReplayX := (replayX / 2) - (len(displayStr) / 2)
+		t.drawStr(newReplayX, replayY, displayStr)
+		t.screen.Show()
+		time.Sleep(time.Duration(1) * time.Second)
+	}
+	return true
 }
 
 // ExitGame is a callback triggered when the game terminates
-func (t *TextGame) ExitGame(playAgain bool) {
+func (t *TextGame) ExitGame() {
 	// Clean up screen object
 	t.screen.Fini()
 }
@@ -201,67 +218,51 @@ func (t *TextGame) drawBoard() {
 		previewX = boardX + (xToY * int(model.BoardWidth)) + int(model.BoardWidth)
 		previewY = boardY + yPad
 		// Starting coordinates for the score (relative to the board)
-		scoreX = previewX + xPad
+		scoreX = previewX + (xPad / 2)
 		scoreY = boardY
 	)
 	t.screen.Fill(' ', lookupColor(BoardBackground))
 
 	// Draw the main board
-	workingGrid := t.board.Current()
 	y := boardY
-	for row := 0; row < len(workingGrid); row++ {
-		// `y` includes padding from the top of the screen
-		var mask uint8 = 1 << 7
-		for col := 0; col < int(model.BoardWidth); col++ {
-			// Calculate the left and right block x coordinates
-			xL := boardX + (2 * col)
-			xR := boardX + (2 * col) + 1
-			if (workingGrid[row] & mask) > 0 {
-				t.screen.SetContent(xL, y, '▇', nil, lookupColor(Red))
-				t.screen.SetContent(xR, y, '▇', nil, lookupColor(Red))
-			} else {
-				t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
-				t.screen.SetContent(xR, y, '.', nil, lookupColor(BoardForeground))
-			}
-			mask >>= 1
+	t.board.RenderBoard(func(row uint8, col uint8, isEOL bool, color model.TileColor) {
+		// Calculate the left and right block x coordinates
+		xL := boardX + (2 * int(col))
+		xR := boardX + (2 * int(col)) + 1
+		textColor := lookupTileColor(color)
+		if color != model.Transparent {
+			t.screen.SetContent(xL, y, '▇', nil, textColor)
+			t.screen.SetContent(xR, y, '▇', nil, textColor)
+		} else {
+			t.screen.SetContent(xL, y, ' ', nil, textColor)
+			t.screen.SetContent(xR, y, '.', nil, textColor)
 		}
-		y++
-	}
+		if isEOL {
+			y++
+		}
+	})
 
 	// Draw the score
-	t.drawStr(scoreX, scoreY, t.board.GetDisplayScore())
+	t.drawStr(scoreX, scoreY, "Score:  "+t.board.GetDisplayScore())
 
 	// Draw the next tile
-	nextTile := t.board.GetNextTile()
-	nextTileBlock := nextTile.GetBlock()
-	nextTileColor := nextTile.GetColor()
 	y = previewY
-	// Pad the top of the preview view
-	for col := 4; col < (2*model.TileSize)+4; col++ {
-		x := previewX + col
-		t.screen.SetContent(x, y, ' ', nil, lookupColor(BoardForeground))
-	}
-	y++
-	// We draw outside of the rendering of the tile to provide lower padding.
-	for row := 0; row < model.TileSize+1; row++ {
-		// To save on rendering time, skip the first 2 columns, which we know are
-		// padded to be empty on the initial tile's shape/orientation.
-		var mask uint8 = 1 << 5
-		for col := 2; col < model.TileSize+2; col++ {
-			xL := previewX + (2 * col)
-			xR := previewX + (2 * col) + 1
-			// The check against row provides lower padding to the preview.
-			if (row < model.TileSize) && ((nextTileBlock[row] & mask) > 0) {
-				t.screen.SetContent(xL, y, '▇', nil, lookupTileColor(nextTileColor))
-				t.screen.SetContent(xR, y, '▇', nil, lookupTileColor(nextTileColor))
-			} else {
-				t.screen.SetContent(xL, y, ' ', nil, lookupColor(BoardForeground))
-				t.screen.SetContent(xR, y, ' ', nil, lookupColor(BoardForeground))
-			}
-			mask >>= 1
+	t.board.RenderNextTile(func(row uint8, col uint8, isEOL bool, color model.TileColor) {
+		// Calculate the left and right block x coordinates
+		xL := previewX + (2 * int(col))
+		xR := previewX + (2 * int(col)) + 1
+		textColor := lookupTileColor(color)
+		if color != model.Transparent {
+			t.screen.SetContent(xL, y, '▇', nil, textColor)
+			t.screen.SetContent(xR, y, '▇', nil, textColor)
+		} else {
+			t.screen.SetContent(xL, y, ' ', nil, textColor)
+			t.screen.SetContent(xR, y, ' ', nil, textColor)
 		}
-		y++
-	}
+		if isEOL {
+			y++
+		}
+	})
 
 	// Render it all
 	t.screen.Show()

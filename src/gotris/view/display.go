@@ -46,10 +46,10 @@ type Display interface {
 	RenderHelpMenu() string
 	// Initializes the game.
 	InitGame(b *model.Board)
-	// Runs the primary gameplay loop.
-	RenderGame()
-	// Callback for when the game terminates, with the option to play again.
-	ExitGame(playAgain bool)
+	// Runs the primary gameplay loop, returning true to play again.
+	RenderGame() bool
+	// Callback for when the game terminates.
+	ExitGame()
 }
 
 /***** Functions *****/

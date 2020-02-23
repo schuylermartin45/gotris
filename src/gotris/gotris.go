@@ -70,30 +70,10 @@ func main() {
 	}
 
 	// Initialize, run, and exit with the selected mode
-	modeMap[mode].InitGame(model.NewBoard())
-	modeMap[mode].RenderGame()
-	// TODO implement "play again" option
-	modeMap[mode].ExitGame(false)
-
-	// TODO implement real test cases!
-	/*
-		// Basic tile rotaton test
-		aTile := model.PickTile()
-		for i := 0; i < 5; i++ {
-			drawItem(aTile.GetBlock())
-			fmt.Println("-------------")
-			aTile.Rotate()
-		}
-		// Basic Tile Movement test
-		for i := 0; i < 5; i++ {
-			drawItem(aTile.GetBlock())
-			fmt.Println("-------------")
-			aTile.MoveX(model.Left)
-		}
-		for i := 0; i < 10; i++ {
-			drawItem(aTile.GetBlock())
-			fmt.Println("-------------")
-			aTile.MoveX(model.Right)
-		}
-	*/
+	playAgain := true
+	for playAgain {
+		modeMap[mode].InitGame(model.NewBoard())
+		playAgain = modeMap[mode].RenderGame()
+	}
+	modeMap[mode].ExitGame()
 }
