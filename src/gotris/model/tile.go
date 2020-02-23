@@ -27,7 +27,7 @@ const (
 // TileColor represents a color in an enumerated form
 type TileColor uint8
 
-// TileColor enumerations
+// TileColor enumerations. Also doubles as a way to identify each tile shape.
 const (
 	// Also known as the "nil" color
 	Transparent TileColor = 0
@@ -193,22 +193,42 @@ func (t *Tile) MoveX(direction XDirection) {
  Rotates the tile by 90 degrees.
 */
 func (t *Tile) Rotate() {
-	// Each row (byte in the original) becomes a column in the transpose.
-	transpose := Block{}
-	widthDiff := BoardWidth - TileSize
-	halfWidthDiff := widthDiff / 2
-	maxCol := TileSize + halfWidthDiff
-	transposeMask := uint32(blockMask << ((blockBitSize * uint32(halfWidthDiff)) + 1))
+	// Short-circuit on the square tile. No rotation is required.
+	if t.color == Cyan {
+		return
+	}
+	// Generate a repeating color mask to make it easier to copy the color
+	// into the transposed matrix.
+	colorMask := uint32(0)
+	for col := uint32(0); col < 10; col++ {
+		colorMask |= uint32(t.color) << ((blockBitSize * col) + 1)
+	}
+
+	// Find all of the positions in the board that are currently filled. Track
+	// the minimum column value as that minimum column becomes the first row.
+	var rowIdxs []uint8
+	var colIdxs []uint8
+	minCol := BoardWidth
 	for row := uint8(0); row < TileSize; row++ {
 		var mask uint32 = blockMask << rShiftBlockBitDiff
-		for col := uint8(halfWidthDiff); col < maxCol; col++ {
-			singleBlock := uint32(t.shape[row] & mask)
-			if singleBlock > 0 {
-				transpose[col] |= transposeMask
+		for col := uint8(0); col < BoardWidth; col++ {
+			if uint32(t.shape[row]&mask) > 0 {
+				rowIdxs = append(rowIdxs, row)
+				colIdxs = append(colIdxs, col)
+				if col < minCol {
+					minCol = col
+				}
 			}
 			mask >>= blockBitSize
 		}
-		transposeMask <<= blockMask
+	}
+	// Iterate over all known block positions, re-adjusting the coordinates
+	// as blocks are examined.
+	transpose := Block{}
+	for i := 0; i < TileSize; i++ {
+		transposeMask := uint32(blockMask << rShiftBlockBitDiff)
+		transposeMask >>= blockBitSize * uint32(rowIdxs[i]+minCol)
+		transpose[colIdxs[i]-minCol] |= transposeMask & colorMask
 	}
 	t.shape = transpose
 }
