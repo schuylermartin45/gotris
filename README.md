@@ -1,4 +1,4 @@
-# Gotris
+# Gotris (v0.5)
 
 ## An implementation of Tetris in Go following MVC design principles
 
