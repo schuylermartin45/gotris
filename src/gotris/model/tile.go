@@ -9,8 +9,6 @@ package model
 
 import (
 	"math/rand"
-	// Ticking away, the moments that make up the dull day...
-	"time"
 )
 
 /***** Types *****/
@@ -117,9 +115,8 @@ func PickTile(random *rand.Rand) *Tile {
 			0b00000000,
 		}, Green),
 	}
-	ranNum := rand.New(rand.NewSource(time.Now().UnixNano()))
 	// Note to self: this is legit in Go even if it feels so wrong.
-	return &tiles[ranNum.Intn(len(tiles))]
+	return &tiles[random.Intn(len(tiles))]
 }
 
 /*
