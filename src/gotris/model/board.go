@@ -300,24 +300,11 @@ func (b *Board) Rotate() bool {
 		return false
 	}
 	tempTile := *b.tile
-	// If a tile is close to either edge, shift in the opposite direction
-	// and then rotate.
-	const (
-		leftBoundMask  uint32 = 0xF7000000 // 1 leading unused bit + (2*blockBitSize) = 7 bits
-		rightBoundMask uint32 = 0x0000007F // 1 trailing unused bit + (2*blockBitSize) = 7 bits
-	)
-	for row := 0; row < len(tempTile.shape); row++ {
-		if (tempTile.shape[row] & leftBoundMask) > 0 {
-			tempTile.MoveX(Right)
-			tempTile.MoveX(Right)
-			break
-		} else if (tempTile.shape[row] & rightBoundMask) > 0 {
-			tempTile.MoveX(Left)
-			tempTile.MoveX(Left)
-			break
-		}
+	// Bail if the rotation is impossible
+	if !tempTile.Rotate() {
+		return false
 	}
-	tempTile.Rotate()
+	// Bail if a collision occurred
 	if checkCollisions(b.grid, tempTile, b.tileDepth) {
 		return false
 	}

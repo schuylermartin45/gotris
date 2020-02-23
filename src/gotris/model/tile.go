@@ -190,11 +190,13 @@ func (t *Tile) MoveX(direction XDirection) {
 
 /*
  Rotates the tile by 90 degrees.
+
+ @return True if the rotation occurred. False otherwise.
 */
-func (t *Tile) Rotate() {
+func (t *Tile) Rotate() bool {
 	// Short-circuit on the square tile. No rotation is required.
 	if t.color == Cyan {
-		return
+		return true
 	}
 	// Generate a repeating color mask to make it easier to copy the color
 	// into the transposed matrix.
@@ -225,12 +227,15 @@ func (t *Tile) Rotate() {
 	// as blocks are examined.
 	transpose := Block{}
 	for i := 0; i < TileSize; i++ {
-		//transposeMask := uint32(blockMask << rShiftBlockBitDiff)
-		//transposeMask >>= blockBitSize * uint32(rowIdxs[i]+minCol)
-		transposeMask := uint32(blockMask << ((blockBitSize * uint32(rowIdxs[i]+minCol)) + 1))
+		newRow := rowIdxs[i] + minCol
+		if newRow >= BoardWidth {
+			return false
+		}
+		transposeMask := uint32(blockMask << ((blockBitSize * uint32(newRow)) + 1))
 		transpose[colIdxs[i]-minCol] |= transposeMask & colorMask
 	}
 	t.shape = transpose
+	return true
 }
 
 /*
