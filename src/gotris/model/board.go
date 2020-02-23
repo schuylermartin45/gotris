@@ -379,6 +379,10 @@ func (b *Board) Next() ([]uint32, bool) {
 		}
 		// Get a score multiplier if multiple rows are cleared at once.
 		b.score += numCleared * numCleared
+		// If you cleared a row, play the terminal bell for fun
+		if numCleared > 0 {
+			fmt.Print("\a")
+		}
 		b.grid = *workingGrid
 	} else {
 		b.tileDepth++
