@@ -61,8 +61,10 @@ type Tile struct {
 
 /*
  Picks a tile at random
+
+ @param random Reference to a random number generator object.
 */
-func PickTile() *Tile {
+func PickTile(random *rand.Rand) *Tile {
 	// Tiles follow the Windows 98 Tetris Color scheme.
 	tiles := [7]Tile{
 		// L-left _|

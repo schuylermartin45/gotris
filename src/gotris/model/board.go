@@ -9,6 +9,9 @@ package model
 
 import (
 	"fmt"
+	"math/rand"
+	// Ticking away, the moments that make up the dull day...
+	"time"
 )
 
 /***** Constants *****/
@@ -67,6 +70,8 @@ type Board struct {
 	// Depth tracks how far down the current tile is in the board. 0 Means
 	// no tile has dropped.
 	tileDepth uint8
+	// Random number generator, initialized with the board.
+	random *rand.Rand
 }
 
 /***** Functions *****/
@@ -86,6 +91,9 @@ func NewBoard() *Board {
 	// Last grid row (which is not drawn) is full of 1s for easier
 	// collision detection.
 	b.grid[BoardHeight] = maskFullRow
+	// Set a new random generator per game. This ensures that we don't
+	// constantly reconstruct the generator for every random value we need.
+	b.random = rand.New(rand.NewSource(time.Now().UnixNano()))
 	return b
 }
 
@@ -327,13 +335,13 @@ func (b *Board) Next() ([]uint32, bool) {
 	// Initialize the next tile. This should a 1-time cost on first starting the
 	// game. This simplifies the logic for setting the active tile.
 	if b.nextTile == nil {
-		b.nextTile = PickTile()
+		b.nextTile = PickTile(b.random)
 	}
 	// On completion of a move, the next tile becomes the active and a new next
 	// is picked.
 	if b.tile == nil {
 		b.tile = b.nextTile
-		b.nextTile = PickTile()
+		b.nextTile = PickTile(b.random)
 		b.tileDepth = 0
 		// Skip the rest of this iteration to give the user a break. Also ensures
 		// that the `tileDepth` variable stays "in sync" with the actual row array
