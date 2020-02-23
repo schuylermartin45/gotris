@@ -225,8 +225,9 @@ func (t *Tile) Rotate() {
 	// as blocks are examined.
 	transpose := Block{}
 	for i := 0; i < TileSize; i++ {
-		transposeMask := uint32(blockMask << rShiftBlockBitDiff)
-		transposeMask >>= blockBitSize * uint32(rowIdxs[i]+minCol)
+		//transposeMask := uint32(blockMask << rShiftBlockBitDiff)
+		//transposeMask >>= blockBitSize * uint32(rowIdxs[i]+minCol)
+		transposeMask := uint32(blockMask << ((blockBitSize * uint32(rowIdxs[i]+minCol)) + 1))
 		transpose[colIdxs[i]-minCol] |= transposeMask & colorMask
 	}
 	t.shape = transpose
