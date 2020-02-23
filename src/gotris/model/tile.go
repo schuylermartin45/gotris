@@ -39,7 +39,7 @@ const (
 )
 
 // TileSize is the max width/height/number of blocks in a tile
-const TileSize = 4
+const TileSize = uint8(4)
 
 // SimpleBlock is the old format used to generate shapes.
 type SimpleBlock [TileSize]uint8
@@ -128,7 +128,7 @@ func PickTile(random *rand.Rand) *Tile {
 */
 func buildTile(shape SimpleBlock, color TileColor) Tile {
 	newShape := Block{}
-	for row := 0; row < TileSize; row++ {
+	for row := uint8(0); row < TileSize; row++ {
 		if shape[row] != 0 {
 			var mask uint8 = 1 << 7
 			for col := uint8(0); col < 8; col++ {
@@ -210,12 +210,14 @@ func (t *Tile) Rotate() bool {
 	var rowIdxs []uint8
 	var colIdxs []uint8
 	minCol := BoardWidth
+	avgCol := uint8(0)
 	for row := uint8(0); row < TileSize; row++ {
 		var mask uint32 = blockMask << rShiftBlockBitDiff
 		for col := uint8(0); col < BoardWidth; col++ {
 			if uint32(t.shape[row]&mask) > 0 {
 				rowIdxs = append(rowIdxs, row)
 				colIdxs = append(colIdxs, col)
+				avgCol += col
 				if col < minCol {
 					minCol = col
 				}
@@ -223,18 +225,22 @@ func (t *Tile) Rotate() bool {
 			mask >>= blockBitSize
 		}
 	}
+	avgCol /= TileSize
 	// Iterate over all known block positions, re-adjusting the coordinates
-	// as blocks are examined.
+	// as blocks are examined. Block will appear rotated on the far-right-side
+	// of the board.
 	transpose := Block{}
-	for i := 0; i < TileSize; i++ {
-		newRow := rowIdxs[i] + minCol
-		if newRow >= BoardWidth {
-			return false
-		}
-		transposeMask := uint32(blockMask << ((blockBitSize * uint32(newRow)) + 1))
+	for i := uint8(0); i < TileSize; i++ {
+		transposeMask := uint32(blockMask << ((blockBitSize * uint32(rowIdxs[i])) + 1))
 		transpose[colIdxs[i]-minCol] |= transposeMask & colorMask
 	}
 	t.shape = transpose
+	// Translate the piece back to roughly where it was. Increment by 2 as
+	// there are about twice as many columns as rows. This leads to better
+	// results.
+	for i := uint8(0); i < (BoardWidth - avgCol); i += 2 {
+		t.MoveX(Left)
+	}
 	return true
 }
 
